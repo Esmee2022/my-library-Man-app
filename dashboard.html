@@ -235,6 +235,48 @@
             .restore-controls { min-width:0; }
             .mobile-dashboard-logout { display:block; width:100%; max-width:calc(100% - 20px); margin:0 auto 24px; box-sizing:border-box; text-align:center; }
         }
+        /* The shared login stylesheet makes the body a centered flex container.
+           The dashboard needs a normal full-width document flow on phones. */
+        body.dashboard-page {
+            display: block;
+            width: 100%;
+            min-height: 100vh;
+            box-sizing: border-box;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .dashboard-container {
+            width: min(1280px, 100%);
+            min-width: 0;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+        .dash-card { min-width: 0; box-sizing: border-box; }
+        @media(max-width:640px) {
+            body.dashboard-page { padding: 12px; }
+            .dashboard-container { width: 100%; max-width: 100%; }
+            .dash-card { width: 100%; padding: 18px; border-radius: 20px; }
+            .dash-header { display: grid; grid-template-columns: minmax(0,1fr); gap: 16px; }
+            .user-meta { display: grid; grid-template-columns: 56px minmax(0,1fr); align-items: center; gap: 14px; width: 100%; min-width: 0; }
+            .user-avatar { width: 56px; height: 56px; flex: none; }
+            .user-meta>div:last-child { width: 100%; min-width: 0; overflow-wrap: normal; word-break: normal; }
+            #userName { margin: 0; font-size: clamp(20px,6vw,26px)!important; line-height: 1.2; overflow-wrap: normal; word-break: normal; }
+            #userEmail { margin-top: 5px; overflow-wrap: anywhere; word-break: normal; }
+            .role-badge { white-space: nowrap; }
+            .header-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); width: 100%; min-width: 0; gap: 8px; }
+            .header-actions>* { min-width: 0; max-width: 100%; box-sizing: border-box; overflow-wrap: normal; word-break: normal; text-align: center; }
+            .timer-badge { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px; min-height: 40px; padding: 8px; }
+            .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+            .stat-item { min-width: 0; padding: 14px 10px; }
+            .stat-label,.stat-value { overflow-wrap: anywhere; word-break: normal; }
+            .section-title { min-width: 0; flex-wrap: wrap; line-height: 1.35; }
+            .table-scroll,.audit-scroll { width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+            .table-scroll table,.audit-scroll table { min-width: 700px; }
+            .security-row { grid-template-columns: minmax(0,1fr); }
+            .restore-controls { display: grid; grid-template-columns: minmax(0,1fr); width: 100%; }
+            .restore-controls>* { width: 100%; min-width: 0; box-sizing: border-box; }
+            .mobile-dashboard-logout { margin: 8px 12px 24px; width: calc(100% - 24px); max-width: none; }
+        }
     </style>
 </head>
 <body class="dashboard-page">
