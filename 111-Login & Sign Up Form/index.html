@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Sign Up Form UI | CodeByGaurav</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="bg-circle bg1"></div>
+    <div class="bg-circle bg2"></div>
+    <div class="bg-circle bg3"></div>
+
+    <div class="auth-wrapper">
+        <div class="auth-card" id="authCard">
+
+            <!-- Login Form -->
+            <div class="form-panel login-panel" id="loginPanel">
+                <div class="logo">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h1>Welcome</h1>
+                <p class="subtitle">Login to continue your journey</p>
+
+                <div class="auth-alert" id="loginAlert"></div>
+
+                <form id="loginForm">
+                    <!-- Email -->
+                    <div class="input-group">
+                        <div class="electric-glow"></div>
+                        <div class="electric-border"></div>
+                        <input type="email" id="loginEmail" placeholder=" " autocomplete="email" required>
+                        <label for="loginEmail">
+                            Email Address
+                        </label>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="input-group">
+                        <div class="electric-glow"></div>
+                        <div class="electric-border"></div>
+                        <input type="password" id="loginPassword" placeholder=" " autocomplete="current-password"
+                            required>
+                        <label for="loginPassword">
+                            Password
+                        </label>
+                        <button type="button" class="password-toggle" data-password-target="loginPassword" aria-label="Show password">
+                            <i id="faIcon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <div class="options">
+                        <label class="checkbox">
+                            <input type="checkbox" id="rememberMe">
+                            Remember me
+                        </label>
+                        <a href="#" id="forgotPasswordLink">
+                            Forgot Password?
+                        </a>
+                    </div>
+                    <button type="submit" class="main-btn" id="loginSubmitBtn">
+                        Login
+                    </button>
+                </form>
+
+                <div class="switch-area">
+                    <span>
+                        Don't have an account?
+                    </span>
+                    <button type="button" class="switch-circle" id="flipToSignupBtn" aria-label="Create an account">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sign Up -->
+            <div class="form-panel signup-panel" id="signupPanel">
+                <div class="logo">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <h1>Create Account</h1>
+                <p class="subtitle">
+                    Start your journey with us
+                </p>
+
+                <div class="auth-alert" id="signupAlert"></div>
+
+                <form id="signupForm">
+                    <!-- Name -->
+                    <div class="input-group">
+                        <div class="electric-glow"></div>
+                        <div class="electric-border"></div>
+                        <input type="text" id="signupName" placeholder=" " autocomplete="name" required>
+                        <label for="signupName">
+                            Full Name
+                        </label>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="input-group">
+                        <div class="electric-glow"></div>
+                        <div class="electric-border"></div>
+                        <input type="email" id="signupEmail" placeholder=" " autocomplete="email" required>
+                        <label for="signupEmail">
+                           Email Address
+                        </label>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="input-group">
+                        <div class="electric-glow"></div>
+                        <div class="electric-border"></div>
+                        <input type="password" id="signupPassword" placeholder=" " autocomplete="new-password"
+                            required>
+                        <label for="signupPassword">
+                            Password
+                        </label>
+                        <button type="button" class="password-toggle" data-password-target="signupPassword" aria-label="Show password">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <!-- Confirm -->
+                    <div class="input-group">
+                        <div class="electric-glow"></div>
+                        <div class="electric-border"></div>
+                        <input type="password" id="confirmPassword" placeholder=" " autocomplete="new-password"
+                            required>
+                        <label for="confirmPassword">
+                           Confirm Password
+                        </label>
+                        <button type="button" class="password-toggle" data-password-target="confirmPassword" aria-label="Show password">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <button type="submit" class="main-btn" id="signupSubmitBtn">CREATE ACCOUNT</button>
+                </form>
+
+                <div class="switch-area">
+                    <span>
+                        Already have an account?
+                    </span>
+                    <button type="button" class="switch-circle" id="flipToLoginBtn" aria-label="Back to login">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2FA Verification Panel -->
+            <div class="form-panel twofa-panel" id="twofaPanel">
+                <div class="logo">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h1 id="twofaTitle">Two-Factor Auth</h1>
+                <p class="subtitle" id="twofaSubtitle">Enter verification code to continue</p>
+
+                <div class="auth-alert" id="twofaAlert"></div>
+
+                <div id="enrollmentSection" style="display: none;">
+                    <div class="qr-container">
+                        <img id="qrCodeImg" alt="2FA QR Code" src="">
+                        <div style="font-size: 11px; color: #7c858e;">Can't scan? Key:</div>
+                        <div class="manual-secret" id="manualSecretText"></div>
+                    </div>
+                    <div class="recovery-box">
+                        <div class="recovery-title"><i class="fa-solid fa-key"></i> Backup Recovery Codes (Save these!)</div>
+                        <div class="recovery-list" id="recoveryCodesList"></div>
+                    </div>
+                </div>
+
+                <form id="twofaForm">
+                    <div class="input-group">
+                        <div class="electric-glow"></div>
+                        <div class="electric-border"></div>
+                        <input type="text" id="totpInput" placeholder=" " maxlength="12" autocomplete="one-time-code" required>
+                        <label for="totpInput">6-Digit TOTP or Recovery Code</label>
+                    </div>
+
+                    <button type="submit" class="main-btn" id="twofaSubmitBtn">
+                        VERIFY & ENTER
+                    </button>
+                </form>
+
+                <div class="switch-area">
+                    <span>Back to login?</span>
+                    <button type="button" class="switch-circle" id="cancel2faBtn" aria-label="Back to login">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="script.js"></script>
+
+</html>

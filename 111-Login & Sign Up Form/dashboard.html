@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Dashboard | RBAC & 2FA Protected</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Dashboard-specific layout extensions adhering to identical neumorphic design */
+        body {
+            overflow-y: auto;
+            padding: 40px 20px;
+            align-items: flex-start;
+        }
+        .dashboard-container {
+            width: 1000px;
+            max-width: 95%;
+            margin: 0 auto;
+        }
+        .dash-card {
+            background: #e7ebf0;
+            border-radius: 28px;
+            padding: 30px;
+            box-shadow: 18px 18px 36px rgba(163, 177, 198, .65), -18px -18px 36px rgba(255, 255, 255, .95);
+            margin-bottom: 25px;
+        }
+        .dash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .user-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #e7ebf0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #087cff;
+            box-shadow: 6px 6px 12px rgba(163, 177, 198, .65), -6px -6px 12px rgba(255, 255, 255, .95);
+        }
+        .role-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin-top: 4px;
+            background: #e7ebf0;
+            box-shadow: inset 2px 2px 5px rgba(163, 177, 198, .6), inset -2px -2px 5px rgba(255, 255, 255, .9);
+        }
+        .badge-administrator { color: #d32f2f; border: 1px solid rgba(211, 47, 47, 0.3); }
+        .badge-admin { color: #f57c00; border: 1px solid rgba(245, 124, 0, 0.3); }
+        .badge-manager { color: #0072ff; border: 1px solid rgba(0, 114, 255, 0.3); }
+        .badge-inputer { color: #2e7d32; border: 1px solid rgba(46, 125, 50, 0.3); }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .timer-badge {
+            font-size: 12px;
+            color: #7c858e;
+            padding: 8px 14px;
+            border-radius: 14px;
+            background: #e7ebf0;
+            box-shadow: inset 2px 2px 5px rgba(163, 177, 198, .5), inset -2px -2px 5px rgba(255, 255, 255, .9);
+        }
+        .logout-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 14px;
+            background: #e7ebf0;
+            color: #d32f2f;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 6px 6px 12px rgba(163, 177, 198, .65), -6px -6px 12px rgba(255, 255, 255, .95);
+            transition: .25s ease;
+        }
+        .logout-btn:hover {
+            background: #d32f2f;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(211, 47, 47, .35);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-top: 20px;
+        }
+        .stat-item {
+            padding: 20px;
+            border-radius: 18px;
+            background: #e7ebf0;
+            box-shadow: inset 4px 4px 8px rgba(163, 177, 198, .55), inset -4px -4px 8px rgba(255, 255, 255, .95);
+            text-align: center;
+        }
+        .stat-icon {
+            font-size: 24px;
+            color: #087cff;
+            margin-bottom: 8px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #7c858e;
+            margin-bottom: 4px;
+        }
+        .stat-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #303943;
+        }
+        .section-title {
+            font-size: 18px;
+            color: #303943;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+            margin-top: 10px;
+        }
+        th {
+            text-align: left;
+            padding: 10px 14px;
+            color: #7c858e;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 12px 14px;
+            background: #e7ebf0;
+            font-size: 13px;
+            color: #303943;
+            box-shadow: inset 2px 2px 5px rgba(163, 177, 198, .4), inset -2px -2px 5px rgba(255, 255, 255, .8);
+        }
+        td:first-child { border-radius: 12px 0 0 12px; }
+        td:last-child { border-radius: 0 12px 12px 0; }
+        .action-btn-del {
+            border: none;
+            padding: 6px 12px;
+            border-radius: 10px;
+            background: #e7ebf0;
+            color: #d32f2f;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 11px;
+            box-shadow: 3px 3px 6px rgba(163, 177, 198, .6), -3px -3px 6px rgba(255, 255, 255, .9);
+        }
+        .action-btn-del:hover {
+            background: #d32f2f;
+            color: #fff;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .select-group {
+            height: 54px;
+            border-radius: 16px;
+            background: #e7ebf0;
+            box-shadow: inset 4px 4px 8px rgba(163, 177, 198, .55), inset -4px -4px 8px rgba(255, 255, 255, .95);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+        }
+        .select-group select {
+            width: 100%;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 14px;
+            color: #303943;
+        }
+        .audit-scroll {
+            max-height: 380px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-circle bg1"></div>
+    <div class="bg-circle bg2"></div>
+    <div class="bg-circle bg3"></div>
+
+    <div class="dashboard-container">
+        <!-- Top Bar Header -->
+        <div class="dash-card">
+            <div class="dash-header">
+                <div class="user-meta">
+                    <div class="user-avatar">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <div>
+                        <h2 id="userName" style="font-size: 20px; color: #303943;">Authenticated User</h2>
+                        <div id="userEmail" style="font-size: 13px; color: #7c858e;">email@domain.local</div>
+                        <span class="role-badge" id="roleBadge">ROLE</span>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <div class="timer-badge">
+                        <i class="fa-regular fa-clock"></i> Idle Expiry: <span id="idleTimer">30:00</span>
+                    </div>
+                    <button class="logout-btn" id="logoutBtn" onclick="logout()">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                    </button>
+                </div>
+            </div>
+
+            <!-- Security Overview Cards -->
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fa-solid fa-lock"></i></div>
+                    <div class="stat-label">Password Hashing</div>
+                    <div class="stat-value">Argon2id + HMAC Pepper</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fa-solid fa-shield-virus"></i></div>
+                    <div class="stat-label">2FA TOTP Encryption</div>
+                    <div class="stat-value">AES-256-GCM</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fa-solid fa-database"></i></div>
+                    <div class="stat-label">Database Security</div>
+                    <div class="stat-value">SQLite (WAL + Parameterized)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fa-solid fa-cookie-bite"></i></div>
+                    <div class="stat-label">Session Protection</div>
+                    <div class="stat-value">httpOnly, Secure, CSRF</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback Alert Container -->
+        <div class="auth-alert" id="dashAlert" style="margin-bottom: 20px;"></div>
+
+        <!-- 1. Manager & Administrator Section: Create User Form -->
+        <div class="dash-card" id="createUserSection" style="display: none;">
+            <div class="section-title">
+                <i class="fa-solid fa-user-plus"></i> <span id="createUserTitle">Add New User</span>
+            </div>
+            <form id="addUserForm" onsubmit="handleCreateUser(event)">
+                <div class="form-row">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <div class="electric-glow"></div>
+                        <div class="electric-border"></div>
+                        <input type="text" id="newUserName" placeholder=" " required>
+                        <label for="newUserName">Full Name</label>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <div class="electric-glow"></div>
+                        <div class="electric-border"></div>
+                        <input type="email" id="newUserEmail" placeholder=" " required>
+                        <label for="newUserEmail">Email Address</label>
+                    </div>
+                </div>
+
+                <div class="form-row" style="margin-top: 15px;">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <div class="electric-glow"></div>
+                        <div class="electric-border"></div>
+                        <input type="password" id="newUserPassword" placeholder=" " required>
+                        <label for="newUserPassword">Password (min 10 chars, mixed)</label>
+                    </div>
+
+                    <div class="select-group" id="roleSelectContainer">
+                        <select id="newUserRole">
+                            <option value="inputer">Role: Inputer</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="main-btn" id="createUserBtn" style="margin-top: 18px; height: 50px;">
+                    CREATE AUTHORIZED USER
+                </button>
+            </form>
+        </div>
+
+        <!-- 2. Manager, Admin & Administrator Section: Users Table -->
+        <div class="dash-card" id="userListSection" style="display: none;">
+            <div class="section-title" style="justify-content: space-between;">
+                <div><i class="fa-solid fa-users"></i> Authorized Users</div>
+                <button onclick="loadUsers()" class="action-btn-del" style="color: #087cff;">
+                    <i class="fa-solid fa-rotate-right"></i> Refresh
+                </button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>2FA Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr><td colspan="6" style="text-align: center;">Loading users...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 3. Administrator Only Section: Security Audit Log -->
+        <div class="dash-card" id="auditLogSection" style="display: none;">
+            <div class="section-title" style="justify-content: space-between;">
+                <div><i class="fa-solid fa-clipboard-list"></i> Security Audit Log (Immutable)</div>
+                <button onclick="loadAuditLogs()" class="action-btn-del" style="color: #087cff;">
+                    <i class="fa-solid fa-rotate-right"></i> Refresh Logs
+                </button>
+            </div>
+            <div class="audit-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Action</th>
+                            <th>User Email</th>
+                            <th>IP Address</th>
+                            <th>Status</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditTableBody">
+                        <tr><td colspan="6" style="text-align: center;">Loading audit logs...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 4. Inputer Only Welcome Card -->
+        <div class="dash-card" id="inputerWelcomeSection" style="display: none;">
+            <div class="section-title">
+                <i class="fa-solid fa-gauge"></i> Inputer Dashboard
+            </div>
+            <p style="color: #495460; font-size: 14px; line-height: 1.6;">
+                You are authenticated with the <strong>Inputer</strong> role. You have permissions to browse system resources and enter data. User management and security audit views are restricted to supervisory and administrative roles.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let csrfToken = sessionStorage.getItem('csrfToken') || '';
+        let idleSeconds = 30 * 60; // 30 minutes
+
+        function showDashAlert(msg, type = 'error') {
+            const el = document.getElementById('dashAlert');
+            el.className = `auth-alert ${type}`;
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 4000);
+        }
+
+        // Idle timer countdown
+        setInterval(() => {
+            if (idleSeconds > 0) {
+                idleSeconds--;
+                const m = Math.floor(idleSeconds / 60);
+                const s = idleSeconds % 60;
+                document.getElementById('idleTimer').textContent = 
+                    `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            } else {
+                alert('Session timed out after 30 minutes of inactivity. Please log in again.');
+                window.location.href = 'index.html';
+            }
+        }, 1000);
+
+        async function initDashboard() {
+            try {
+                const res = await fetch('/api/auth/me', { credentials: 'include' });
+                if (!res.ok) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                const data = await res.json();
+                currentUser = data.user;
+                csrfToken = data.csrfToken;
+                sessionStorage.setItem('csrfToken', csrfToken);
+
+                // Render Header
+                document.getElementById('userName').textContent = currentUser.name || currentUser.email;
+                document.getElementById('userEmail').textContent = currentUser.email;
+                const badge = document.getElementById('roleBadge');
+                badge.textContent = currentUser.role;
+                badge.className = `role-badge badge-${currentUser.role}`;
+
+                // RBAC UI Configuration
+                const role = currentUser.role;
+                if (role === 'inputer') {
+                    document.getElementById('inputerWelcomeSection').style.display = 'block';
+                }
+
+                if (role === 'manager' || role === 'administrator') {
+                    document.getElementById('createUserSection').style.display = 'block';
+                    const roleSelect = document.getElementById('newUserRole');
+                    if (role === 'administrator') {
+                        roleSelect.innerHTML = `
+                            <option value="inputer">Role: Inputer</option>
+                            <option value="manager">Role: Manager</option>
+                            <option value="admin">Role: Admin</option>
+                            <option value="administrator">Role: Administrator</option>
+                        `;
+                    }
+                }
+
+                if (role === 'manager' || role === 'admin' || role === 'administrator') {
+                    document.getElementById('userListSection').style.display = 'block';
+                    loadUsers();
+                }
+
+                if (role === 'administrator') {
+                    document.getElementById('auditLogSection').style.display = 'block';
+                    loadAuditLogs();
+                }
+
+            } catch (err) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const res = await fetch('/api/users', { credentials: 'include' });
+                if (!res.ok) return;
+                const data = await res.json();
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = '';
+
+                data.users.forEach(u => {
+                    const tr = document.createElement('tr');
+                    const isSelf = u.id === currentUser.id;
+                    const canDelete = (currentUser.role === 'administrator' && !isSelf) || 
+                                      (currentUser.role === 'admin' && u.role === 'inputer');
+
+                    tr.innerHTML = `
+                        <td>${u.id}</td>
+                        <td>${u.name || '-'}</td>
+                        <td>${u.email}</td>
+                        <td><span class="role-badge badge-${u.role}">${u.role}</span></td>
+                        <td>${u.totp_enrolled ? '<span style="color:#2e7d32;"><i class="fa-solid fa-check"></i> Enrolled</span>' : '<span style="color:#f57c00;">Pending 1st Login</span>'}</td>
+                        <td>
+                            ${canDelete ? `<button class="action-btn-del" onclick="deleteUser(${u.id}, '${u.email}')"><i class="fa-solid fa-trash"></i> Delete</button>` : (isSelf ? '<span style="color:#7c858e;">(You)</span>' : '-')}
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error('Error loading users:', err);
+            }
+        }
+
+        async function handleCreateUser(e) {
+            e.preventDefault();
+            const name = document.getElementById('newUserName').value.trim();
+            const email = document.getElementById('newUserEmail').value.trim();
+            const password = document.getElementById('newUserPassword').value;
+            const role = document.getElementById('newUserRole').value;
+
+            try {
+                const res = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ name, email, password, role })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    showDashAlert(data.error || 'Failed to create user', 'error');
+                } else {
+                    showDashAlert(`User ${email} created successfully with role ${role}!`, 'success');
+                    document.getElementById('addUserForm').reset();
+                    loadUsers();
+                }
+            } catch (err) {
+                showDashAlert('Network error creating user', 'error');
+            }
+        }
+
+        async function deleteUser(id, email) {
+            if (!confirm(`Are you sure you want to delete user ${email}?`)) return;
+
+            try {
+                const res = await fetch(`/api/users/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-Token': csrfToken },
+                    credentials: 'include'
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showDashAlert(data.error || 'Failed to delete user', 'error');
+                } else {
+                    showDashAlert(`User ${email} deleted successfully.`, 'info');
+                    loadUsers();
+                }
+            } catch (err) {
+                showDashAlert('Network error deleting user', 'error');
+            }
+        }
+
+        async function loadAuditLogs() {
+            try {
+                const res = await fetch('/api/audit-log?limit=50', { credentials: 'include' });
+                if (!res.ok) return;
+                const data = await res.json();
+                const tbody = document.getElementById('auditTableBody');
+                tbody.innerHTML = '';
+
+                data.logs.forEach(l => {
+                    const tr = document.createElement('tr');
+                    const statusColor = l.status === 'SUCCESS' ? '#2e7d32' : '#d32f2f';
+                    tr.innerHTML = `
+                        <td style="font-size:11px; white-space:nowrap;">${l.timestamp}</td>
+                        <td><strong>${l.action}</strong></td>
+                        <td>${l.user_email || 'anonymous'}</td>
+                        <td>${l.ip_address}</td>
+                        <td style="color:${statusColor}; font-weight:700;">${l.status}</td>
+                        <td style="font-size:12px; color:#555;">${l.details || '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error('Error loading audit log:', err);
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-Token': csrfToken },
+                    credentials: 'include'
+                });
+            } finally {
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>

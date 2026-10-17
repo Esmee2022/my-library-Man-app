@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Dashboard | RBAC & 2FA Protected</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="library-visuals.css">
+    <style>
+        /* Dashboard-specific layout extensions adhering to identical neumorphic design */
+        body {
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 40px 20px;
+            align-items: flex-start;
+        }
+        .dashboard-container {
+            width: min(1280px, 96vw);
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        .dash-card { min-width: 0; }
+        .dashboard-clock { color:#7c858e;font-size:12px;margin-top:8px; }
+        .table-scroll { max-width:100%;overflow:auto;overscroll-behavior-x:contain; }
+        .table-scroll table { min-width:760px; }
+        .admin-toolbar { display:flex;align-items:center;gap:10px;flex-wrap:wrap; }
+        .security-output { display:grid;gap:10px;margin-top:16px; }
+        .security-row { display:grid;grid-template-columns:160px minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px;border-radius:12px;background:#e7ebf0;box-shadow:inset 2px 2px 4px #a3b1b677,inset -2px -2px 4px #fff; }
+        .security-row code { overflow-wrap:anywhere;font-size:12px; }
+        .restore-controls { display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0; }
+        .restore-controls select { min-height:42px;min-width:min(340px,100%);padding:8px 12px;border:0;border-radius:10px;background:#e7ebf0;box-shadow:inset 2px 2px 5px #a3b1b677,inset -2px -2px 5px #fff; }
+        .danger-action { background:#fff0f0!important;color:#b42318!important; }
+        @media(max-width:640px){ body{padding:16px 10px}.dash-card{padding:18px;border-radius:20px}.dashboard-container{width:100%}.security-row{grid-template-columns:1fr}.restore-controls>*{width:100%} }
+        .dash-card {
+            background: #e7ebf0;
+            border-radius: 28px;
+            padding: 30px;
+            box-shadow: 18px 18px 36px rgba(163, 177, 198, .65), -18px -18px 36px rgba(255, 255, 255, .95);
+            margin-bottom: 25px;
+        }
+        .dash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .user-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #e7ebf0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #087cff;
+            box-shadow: 6px 6px 12px rgba(163, 177, 198, .65), -6px -6px 12px rgba(255, 255, 255, .95);
+        }
+        .role-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin-top: 4px;
+            background: #e7ebf0;
+            box-shadow: inset 2px 2px 5px rgba(163, 177, 198, .6), inset -2px -2px 5px rgba(255, 255, 255, .9);
+        }
+        .badge-administrator { color: #d32f2f; border: 1px solid rgba(211, 47, 47, 0.3); }
+        .badge-admin { color: #f57c00; border: 1px solid rgba(245, 124, 0, 0.3); }
+        .badge-manager { color: #0072ff; border: 1px solid rgba(0, 114, 255, 0.3); }
+        .badge-inputer { color: #2e7d32; border: 1px solid rgba(46, 125, 50, 0.3); }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .timer-badge {
+            font-size: 12px;
+            color: #7c858e;
+            padding: 8px 14px;
+            border-radius: 14px;
+            background: #e7ebf0;
+            box-shadow: inset 2px 2px 5px rgba(163, 177, 198, .5), inset -2px -2px 5px rgba(255, 255, 255, .9);
+        }
+        .logout-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 14px;
+            background: #e7ebf0;
+            color: #d32f2f;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 6px 6px 12px rgba(163, 177, 198, .65), -6px -6px 12px rgba(255, 255, 255, .95);
+            transition: .25s ease;
+        }
+        .logout-btn:hover {
+            background: #d32f2f;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(211, 47, 47, .35);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-top: 20px;
+        }
+        .stat-item {
+            padding: 20px;
+            border-radius: 18px;
+            background: #e7ebf0;
+            box-shadow: inset 4px 4px 8px rgba(163, 177, 198, .55), inset -4px -4px 8px rgba(255, 255, 255, .95);
+            text-align: center;
+        }
+        .stat-icon {
+            font-size: 24px;
+            color: #087cff;
+            margin-bottom: 8px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #7c858e;
+            margin-bottom: 4px;
+        }
+        .stat-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #303943;
+        }
+        .section-title {
+            font-size: 18px;
+            color: #303943;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+            margin-top: 10px;
+        }
+        th {
+            text-align: left;
+            padding: 10px 14px;
+            color: #7c858e;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 12px 14px;
+            background: #e7ebf0;
+            font-size: 13px;
+            color: #303943;
+            box-shadow: inset 2px 2px 5px rgba(163, 177, 198, .4), inset -2px -2px 5px rgba(255, 255, 255, .8);
+        }
+        td:first-child { border-radius: 12px 0 0 12px; }
+        td:last-child { border-radius: 0 12px 12px 0; }
+        .action-btn-del {
+            border: none;
+            padding: 6px 12px;
+            border-radius: 10px;
+            background: #e7ebf0;
+            color: #d32f2f;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 11px;
+            box-shadow: 3px 3px 6px rgba(163, 177, 198, .6), -3px -3px 6px rgba(255, 255, 255, .9);
+        }
+        .action-btn-del:hover {
+            background: #d32f2f;
+            color: #fff;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .select-group {
+            height: 54px;
+            border-radius: 16px;
+            background: #e7ebf0;
+            box-shadow: inset 4px 4px 8px rgba(163, 177, 198, .55), inset -4px -4px 8px rgba(255, 255, 255, .95);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+        }
+        .select-group select {
+            width: 100%;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 14px;
+            color: #303943;
+        }
+        .audit-scroll {
+            max-height: 380px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="dashboard-page">
+    <div class="book-backdrop" aria-hidden="true"></div>
+    <div class="bg-circle bg1"></div>
+    <div class="bg-circle bg2"></div>
+    <div class="bg-circle bg3"></div>
+
+    <div class="dashboard-container">
+        <!-- Top Bar Header -->
+        <div class="dash-card">
+            <div class="dash-header">
+                <div class="user-meta">
+                    <div class="user-avatar">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <div>
+                        <h2 id="userName" style="font-size: 20px; color: #303943;">Authenticated User</h2>
+                        <div id="userEmail" style="font-size: 13px; color: #7c858e;">email@domain.local</div>
+                        <span class="role-badge" id="roleBadge">ROLE</span>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <a href="library.html" class="logout-btn" style="color:#087cff;text-decoration:none;">Open Library Workspace</a>
+                    <div class="timer-badge">
+                        <i class="fa-regular fa-clock"></i> Idle Expiry: <span id="idleTimer">30:00</span>
+                    </div>
+                    <div class="timer-badge" id="dashboardClock" aria-live="off">Loading date and time…</div>
+                    <button type="button" class="logout-btn" id="logoutBtn">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                    </button>
+                </div>
+            </div>
+
+            <!-- Security Overview Cards -->
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fa-solid fa-lock"></i></div>
+                    <div class="stat-label">Password Hashing</div>
+                    <div class="stat-value">Argon2id + HMAC Pepper</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fa-solid fa-shield-virus"></i></div>
+                    <div class="stat-label">2FA TOTP Encryption</div>
+                    <div class="stat-value">AES-256-GCM</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fa-solid fa-database"></i></div>
+                    <div class="stat-label">Database Security</div>
+                    <div class="stat-value">SQLite (WAL + Parameterized)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fa-solid fa-cookie-bite"></i></div>
+                    <div class="stat-label">Session Protection</div>
+                    <div class="stat-value">httpOnly, Secure, CSRF</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback Alert Container -->
+        <div class="auth-alert" id="dashAlert" style="margin-bottom: 20px;"></div>
+
+        <!-- 1. Manager & Administrator Section: Create User Form -->
+        <div class="dash-card" id="createUserSection" style="display: none;">
+            <div class="section-title">
+                <i class="fa-solid fa-user-plus"></i> <span id="createUserTitle">Add New User</span>
+            </div>
+            <form id="addUserForm" onsubmit="handleCreateUser(event)">
+                <div class="form-row">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <div class="electric-glow"></div>
+                        <div class="electric-border"></div>
+                        <input type="text" id="newUserName" placeholder=" " required>
+                        <label for="newUserName">Full Name</label>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <div class="electric-glow"></div>
+                        <div class="electric-border"></div>
+                        <input type="email" id="newUserEmail" placeholder=" " required>
+                        <label for="newUserEmail">Email Address</label>
+                    </div>
+                </div>
+
+                <div class="form-row" style="margin-top: 15px;">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <div class="electric-glow"></div>
+                        <div class="electric-border"></div>
+                        <input type="password" id="newUserPassword" placeholder=" " required>
+                        <label for="newUserPassword">Password (min 10 chars, mixed)</label>
+                    </div>
+
+                    <div class="select-group" id="roleSelectContainer">
+                        <select id="newUserRole">
+                            <option value="student">Role: Student</option>
+                            <option value="librarian">Role: Librarian</option>
+                            <option value="manager">Role: Manager</option>
+                            <option value="administrator">Role: Administrator</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="main-btn" id="createUserBtn" style="margin-top: 18px; height: 50px;">
+                    CREATE AUTHORIZED USER
+                </button>
+            </form>
+        </div>
+
+        <!-- 2. Manager, Admin & Administrator Section: Users Table -->
+        <div class="dash-card" id="userListSection" style="display: none;">
+            <div class="section-title" style="justify-content: space-between;">
+                <div><i class="fa-solid fa-users"></i> Authorized Users</div>
+                <button type="button" id="refreshUsersButton" class="action-btn-del" style="color: #087cff;">
+                    <i class="fa-solid fa-rotate-right"></i> Refresh
+                </button>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Account Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr><td colspan="6" style="text-align: center;">Loading users...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="dash-card" id="securityDetailsSection" style="display:none;">
+            <div class="section-title"><i class="fa-solid fa-shield-halved"></i> Account security details</div>
+            <p>Passwords are not stored as readable text. The encoded hash and individual salt are shown only when you request a user’s details.</p>
+            <div id="securityDetailsOutput" class="security-output">Select View security beside an account.</div>
+        </div>
+
+        <div class="dash-card" id="backupSection" style="display:none;">
+            <div class="section-title"><i class="fa-solid fa-database"></i> Encrypted backups</div>
+            <p>Backups are encrypted before upload. Restoring replaces current library records; preview and confirmation are required.</p>
+            <div class="restore-controls">
+                <button type="button" id="createBackupButton" class="action-btn-del" style="color:#087cff;">Create backup</button>
+                <button type="button" id="refreshBackupsButton" class="action-btn-del" style="color:#087cff;">Refresh backups</button>
+                <select id="backupSelect" aria-label="Choose backup to restore"><option value="">Choose a backup to restore</option></select>
+                <button type="button" id="restoreBackupButton" class="action-btn-del danger-action" disabled>Restore backup</button>
+            </div>
+            <div class="table-scroll"><table><thead><tr><th>Created</th><th>Size</th><th>Records</th><th></th></tr></thead><tbody id="backupTableBody"><tr><td colspan="4">No backups loaded.</td></tr></tbody></table></div>
+        </div>
+
+        <!-- 3. Administrator Only Section: Security Audit Log -->
+        <div class="dash-card" id="auditLogSection" style="display: none;">
+            <div class="section-title" style="justify-content: space-between;">
+                <div><i class="fa-solid fa-clipboard-list"></i> Security Audit Log (Immutable)</div>
+                <button onclick="loadAuditLogs()" class="action-btn-del" style="color: #087cff;">
+                    <i class="fa-solid fa-rotate-right"></i> Refresh Logs
+                </button>
+            </div>
+            <div class="audit-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Action</th>
+                            <th>User Email</th>
+                            <th>IP Address</th>
+                            <th>Status</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditTableBody">
+                        <tr><td colspan="6" style="text-align: center;">Loading audit logs...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 4. Inputer Only Welcome Card -->
+        <div class="dash-card" id="inputerWelcomeSection" style="display: none;">
+            <div class="section-title">
+                <i class="fa-solid fa-gauge"></i> Inputer Dashboard
+            </div>
+            <p style="color: #495460; font-size: 14px; line-height: 1.6;">
+                You are authenticated with the <strong>Inputer</strong> role. You have permissions to browse system resources and enter data. User management and security audit views are restricted to supervisory and administrative roles.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let csrfToken = sessionStorage.getItem('csrfToken') || '';
+        let idleSeconds = 30 * 60; // 30 minutes
+
+        function showDashAlert(msg, type = 'error') {
+            const el = document.getElementById('dashAlert');
+            el.className = `auth-alert ${type}`;
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 4000);
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '—';
+            const raw = String(value);
+            const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+            const parsed = dateOnly
+                ? new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]))
+                : new Date(/(?:Z|[+-]\d{2}:?\d{2})$/i.test(raw) ? raw : `${raw.replace(' ', 'T')}Z`);
+            return Number.isNaN(parsed.getTime()) ? escapeHtml(raw) : new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(parsed);
+        }
+
+        function updateDashboardClock() {
+            const clock = document.getElementById('dashboardClock');
+            if (clock) clock.textContent = new Intl.DateTimeFormat(undefined, { dateStyle: 'full', timeStyle: 'medium' }).format(new Date());
+        }
+
+        // Idle timer countdown
+        setInterval(() => {
+            if (idleSeconds > 0) {
+                idleSeconds--;
+                const m = Math.floor(idleSeconds / 60);
+                const s = idleSeconds % 60;
+                document.getElementById('idleTimer').textContent = 
+                    `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            } else {
+                alert('Session timed out after 30 minutes of inactivity. Please log in again.');
+                window.location.href = 'index.html';
+            }
+        }, 1000);
+
+        async function initDashboard() {
+            try {
+                const res = await fetch('/api/auth/me', { credentials: 'include' });
+                if (!res.ok) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                const data = await res.json();
+                currentUser = data.user;
+                csrfToken = data.csrfToken;
+                sessionStorage.setItem('csrfToken', csrfToken);
+                updateDashboardClock();
+                setInterval(updateDashboardClock, 1000);
+
+                // Render Header
+                document.getElementById('userName').textContent = currentUser.name || currentUser.email;
+                document.getElementById('userEmail').textContent = currentUser.email;
+                const badge = document.getElementById('roleBadge');
+                const roleLabels = { admin: 'Librarian', librarian: 'Librarian', administrator: 'Administrator', manager: 'Manager', student: 'Student' };
+                badge.textContent = roleLabels[currentUser.role] || currentUser.role;
+                badge.className = `role-badge badge-${currentUser.role}`;
+
+                // RBAC UI Configuration
+                const role = currentUser.role;
+                if (role === 'inputer') {
+                    document.getElementById('inputerWelcomeSection').style.display = 'block';
+                }
+
+                if (role === 'administrator') {
+                    document.getElementById('createUserSection').style.display = 'block';
+                    const roleSelect = document.getElementById('newUserRole');
+                    if (role === 'administrator') {
+                        roleSelect.innerHTML = `
+                            <option value="student">Role: Student</option>
+                            <option value="librarian">Role: Librarian</option>
+                            <option value="manager">Role: Manager</option>
+                            <option value="administrator">Role: Administrator</option>
+                        `;
+                    }
+                }
+
+                if (role === 'administrator') {
+                    document.getElementById('userListSection').style.display = 'block';
+                    document.getElementById('securityDetailsSection').style.display = 'block';
+                    document.getElementById('backupSection').style.display = 'block';
+                    await Promise.all([loadUsers(), loadBackups()]);
+                }
+
+                if (role === 'administrator') {
+                    document.getElementById('auditLogSection').style.display = 'block';
+                    loadAuditLogs();
+                }
+
+            } catch (err) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const button = document.getElementById('refreshUsersButton');
+                if (button) { button.disabled = true; button.textContent = 'Loading…'; }
+                const res = await fetch('/api/library/users', { credentials: 'include', cache: 'no-store' });
+                if (!res.ok) throw new Error('Could not refresh authorized users.');
+                const data = await res.json();
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = '';
+
+                (data.users || []).forEach(u => {
+                    const tr = document.createElement('tr');
+                    const id = Number(u.local_user_id);
+                    const isSelf = id === Number(currentUser.id);
+                    const roleOptions = ['student','librarian','manager','administrator'].map(r => `<option value="${r}" ${r === u.role ? 'selected' : ''}>${r}</option>`).join('');
+                    const hasAccount = u.authentication_exists !== false;
+                    const actions = isSelf ? '(You)' : hasAccount ? `<button type="button" class="action-btn-del" data-security="${id}">View security</button> <select aria-label="Role for ${escapeHtml(u.email)}" data-role-for="${id}">${roleOptions}</select> <button type="button" class="action-btn-del" data-save-role="${id}">Save role</button> <button type="button" class="action-btn-del" data-deactivate="${id}">${u.active ? 'Deactivate' : 'Activate'}</button> <button type="button" class="action-btn-del danger-action" data-delete-user="${id}">Delete account</button>` : 'Deleted · library history retained';
+                    tr.innerHTML = `<td>${id}</td><td>${escapeHtml(u.display_name || '-')}</td><td>${escapeHtml(u.email)}</td><td><span class="role-badge badge-${escapeHtml(u.role)}">${escapeHtml(u.role)}</span></td><td>${hasAccount ? (u.active ? 'Active' : 'Inactive') : 'Deleted'} · ${u.library_access ? 'Library enabled' : 'Library disabled'}</td><td>${actions}</td>`;
+                    tbody.appendChild(tr);
+                });
+                if (!tbody.children.length) tbody.innerHTML = '<tr><td colspan="6">No authorized users found.</td></tr>';
+                return data.users || [];
+            } catch (err) {
+                showDashAlert(err.message || 'Could not load authorized users.', 'error');
+                console.error('Error loading users:', err);
+                return null;
+            } finally {
+                const button = document.getElementById('refreshUsersButton');
+                if (button) { button.disabled = false; button.innerHTML = '<i class="fa-solid fa-rotate-right"></i> Refresh'; }
+            }
+        }
+
+        async function loadSecurityDetails(id) {
+            try {
+                let res = await fetch(`/api/users/${encodeURIComponent(id)}/security`, { credentials: 'include', cache: 'no-store' });
+                let result = await res.json();
+                if (!res.ok) throw new Error(result.error || 'Could not load security details.');
+                if (!confirm('Password hashes cannot be reversed to recover passwords. Reveal this account’s encoded password hash and individual salt?')) return;
+                res = await fetch(`/api/users/${encodeURIComponent(id)}/security?reveal=1`, { credentials: 'include', cache: 'no-store' });
+                result = await res.json();
+                if (!res.ok) throw new Error(result.error || 'Could not reveal security details.');
+                const security = result.security;
+                const fields = [['Account', security.email], ['Role', security.role], ['Hashing method', security.hashingAlgorithm], ['Hash parameters', JSON.stringify(security.parameters)], ['Password hash', security.passwordHash], ['Individual salt', security.salt], ['Two-factor authentication', security.twoFactorEnabled ? 'Enabled' : 'Not enabled'], ['Password changed', formatDateTime(security.passwordChangedAt)]];
+                document.getElementById('securityDetailsOutput').innerHTML = fields.map(([label, value]) => `<div class="security-row"><strong>${escapeHtml(label)}</strong><code>${escapeHtml(value || '—')}</code>${['Password hash', 'Individual salt'].includes(label) ? `<button type="button" class="action-btn-del" data-copy-security="${label}">Copy</button>` : ''}</div>`).join('');
+                document.getElementById('securityDetailsOutput').dataset.hash = security.passwordHash || '';
+                document.getElementById('securityDetailsOutput').dataset.salt = security.salt || '';
+            } catch (err) { showDashAlert(err.message || 'Could not load security details.', 'error'); }
+        }
+
+        async function loadBackups() {
+            const tbody = document.getElementById('backupTableBody');
+            try {
+                const res = await fetch('/api/library/backups', { credentials: 'include', cache: 'no-store' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Could not load backups.');
+                const backups = data.backups || [];
+                const select = document.getElementById('backupSelect');
+                const previous = select.value;
+                select.innerHTML = '<option value="">Choose a backup to restore</option>' + backups.map(b => `<option value="${escapeHtml(b.id)}">${escapeHtml(formatDateTime(b.created_at))} · ${escapeHtml(String(b.id).slice(0, 8))}</option>`).join('');
+                if (backups.some(b => b.id === previous)) select.value = previous;
+                document.getElementById('restoreBackupButton').disabled = !select.value;
+                tbody.innerHTML = backups.map(b => `<tr><td>${escapeHtml(formatDateTime(b.created_at))}</td><td>${Math.ceil(Number(b.byte_length || 0) / 1024)} KB</td><td>${escapeHtml(JSON.stringify(b.record_counts || {}))}</td><td><button type="button" class="action-btn-del" data-preview-backup="${escapeHtml(b.id)}">Preview</button></td></tr>`).join('') || '<tr><td colspan="4">No backups yet.</td></tr>';
+            } catch (err) { tbody.innerHTML = '<tr><td colspan="4">Unable to load backups.</td></tr>'; showDashAlert(err.message || 'Could not load backups.', 'error'); }
+        }
+
+        document.getElementById('usersTableBody')?.addEventListener('click', async (event) => {
+            const button = event.target.closest('button[data-save-role],button[data-deactivate],button[data-security],button[data-delete-user]');
+            if (!button) return;
+            try {
+                const id = button.dataset.saveRole || button.dataset.deactivate || button.dataset.security || button.dataset.deleteUser;
+                const csrf = sessionStorage.getItem('csrfToken') || '';
+                if (button.dataset.security) return loadSecurityDetails(id);
+                if (button.dataset.deleteUser) {
+                    if (!confirm('Permanently remove this user’s sign-in account? Existing library loans and history will be retained.')) return;
+                    const r = await fetch(`/api/users/${id}`, {method:'DELETE',credentials:'include',headers:{'X-CSRF-Token':csrf}});
+                    const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Account deletion failed');
+                } else if (button.dataset.saveRole) {
+                    const role = document.querySelector(`[data-role-for="${id}"]`).value;
+                    const r = await fetch(`/api/users/${id}/role`, {method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({role})});
+                    const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Role update failed');
+                } else {
+                    const active = button.textContent.trim() === 'Activate';
+                    const r = await fetch(`/api/library/users/${id}/access`, {method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({active})});
+                    const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Account status update failed');
+                }
+                showDashAlert(button.dataset.deleteUser ? 'Account deleted. Library history was retained.' : 'Account updated.', 'success'); await loadUsers();
+            } catch (e) { showDashAlert(e.message || 'Account update failed.', 'error'); }
+        });
+
+        document.getElementById('securityDetailsOutput')?.addEventListener('click', async event => {
+            const button = event.target.closest('[data-copy-security]');
+            if (!button) return;
+            const value = document.getElementById('securityDetailsOutput').dataset[button.dataset.copySecurity === 'Password hash' ? 'hash' : 'salt'] || '';
+            try { await navigator.clipboard.writeText(value); showDashAlert(`${button.dataset.copySecurity} copied.`, 'success'); }
+            catch { showDashAlert('Clipboard access is unavailable.', 'error'); }
+        });
+
+        document.getElementById('backupSelect')?.addEventListener('change', event => { document.getElementById('restoreBackupButton').disabled = !event.target.value; });
+        document.getElementById('refreshUsersButton')?.addEventListener('click', loadUsers);
+        document.getElementById('refreshBackupsButton')?.addEventListener('click', loadBackups);
+        document.getElementById('createBackupButton')?.addEventListener('click', async () => {
+            try {
+                const res = await fetch('/api/library/backups', {method:'POST',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':csrfToken},body:'{}'});
+                const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Backup creation failed.');
+                showDashAlert('Encrypted backup created.', 'success'); await loadBackups();
+            } catch (err) { showDashAlert(err.message || 'Backup creation failed.', 'error'); }
+        });
+        document.getElementById('backupTableBody')?.addEventListener('click', async event => {
+            const button = event.target.closest('[data-preview-backup]'); if (!button) return;
+            document.getElementById('backupSelect').value = button.dataset.previewBackup;
+            document.getElementById('restoreBackupButton').disabled = false;
+            try {
+                const res = await fetch(`/api/library/backups/${encodeURIComponent(button.dataset.previewBackup)}/preview`, {credentials:'include',cache:'no-store'});
+                const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Backup preview failed.');
+                showDashAlert(`Backup preview: ${JSON.stringify(data.recordCounts || {})}`, 'success');
+            } catch (err) { showDashAlert(err.message || 'Backup preview failed.', 'error'); }
+        });
+        document.getElementById('restoreBackupButton')?.addEventListener('click', async () => {
+            const id = document.getElementById('backupSelect').value; if (!id) return;
+            try {
+                const previewResponse = await fetch(`/api/library/backups/${encodeURIComponent(id)}/preview`, {credentials:'include',cache:'no-store'});
+                const preview = await previewResponse.json(); if (!previewResponse.ok) throw new Error(preview.error || 'Could not preview backup.');
+                if (!confirm(`Restore this backup? Current library data will be replaced. Records in backup: ${JSON.stringify(preview.recordCounts || {})}`)) return;
+                if (prompt('Type RESTORE LMS DATA to confirm:') !== 'RESTORE LMS DATA') return showDashAlert('Restore cancelled.');
+                const res = await fetch(`/api/library/backups/${encodeURIComponent(id)}/restore`, {method:'POST',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':csrfToken},body:JSON.stringify({confirmation:'RESTORE LMS DATA'})});
+                const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Restore failed.');
+                showDashAlert('Backup restored successfully.', 'success'); await Promise.all([loadUsers(), loadBackups()]);
+            } catch (err) { showDashAlert(err.message || 'Restore failed.', 'error'); }
+        });
+
+        async function handleCreateUser(e) {
+            e.preventDefault();
+            const name = document.getElementById('newUserName').value.trim();
+            const email = document.getElementById('newUserEmail').value.trim();
+            const password = document.getElementById('newUserPassword').value;
+            const libraryRole = document.getElementById('newUserRole').value;
+
+            try {
+                const res = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ name, email, password, libraryRole })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    showDashAlert(data.error || 'Failed to create user', 'error');
+                } else {
+                    document.getElementById('addUserForm').reset();
+                    const users = await loadUsers();
+                    if (users?.some(user => String(user.email).toLowerCase() === email.toLowerCase())) {
+                        showDashAlert(`User ${email} created and added to Authorized Users.`, 'success');
+                    } else if (users) {
+                        showDashAlert(`User ${email} was created, but is not yet in the refreshed list. Select Refresh to try again.`, 'error');
+                    }
+                }
+            } catch (err) {
+                showDashAlert('Network error creating user', 'error');
+            }
+        }
+
+        async function deleteUser(id, email) {
+            if (!confirm(`Are you sure you want to delete user ${email}?`)) return;
+
+            try {
+                const res = await fetch(`/api/users/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-Token': csrfToken },
+                    credentials: 'include'
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showDashAlert(data.error || 'Failed to delete user', 'error');
+                } else {
+                    showDashAlert(`User ${email} deleted successfully.`, 'info');
+                    loadUsers();
+                }
+            } catch (err) {
+                showDashAlert('Network error deleting user', 'error');
+            }
+        }
+
+        async function loadAuditLogs() {
+            try {
+                const res = await fetch('/api/audit-log?limit=50', { credentials: 'include', cache: 'no-store' });
+                if (!res.ok) throw new Error('Could not refresh audit logs.');
+                const data = await res.json();
+                const tbody = document.getElementById('auditTableBody');
+                tbody.innerHTML = '';
+
+                (data.logs || []).forEach(l => {
+                    const tr = document.createElement('tr');
+                    const statusColor = l.status === 'SUCCESS' ? '#2e7d32' : '#d32f2f';
+                    tr.innerHTML = `
+                        <td style="font-size:11px; white-space:nowrap;">${formatDateTime(l.timestamp)}</td>
+                        <td><strong>${escapeHtml(l.action)}</strong></td>
+                        <td>${escapeHtml(l.user_email || 'anonymous')}</td>
+                        <td>${escapeHtml(l.ip_address)}</td>
+                        <td style="color:${statusColor}; font-weight:700;">${escapeHtml(l.status)}</td>
+                        <td style="font-size:12px; color:#555;">${escapeHtml(l.details || '-')}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                if (!tbody.children.length) tbody.innerHTML = '<tr><td colspan="6">No audit entries found.</td></tr>';
+            } catch (err) {
+                showDashAlert(err.message || 'Could not load audit logs.', 'error');
+            }
+        }
+
+        let loggingOut = false;
+        async function logout() {
+            if (loggingOut) return;
+            loggingOut = true;
+            const button = document.getElementById('logoutBtn');
+            if (button) { button.disabled = true; button.textContent = 'Signing out…'; }
+            try {
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-Token': csrfToken },
+                    credentials: 'include',
+                    cache: 'no-store',
+                    signal: AbortSignal.timeout(5000)
+                });
+            } finally {
+                sessionStorage.clear();
+                window.location.replace('index.html');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('logoutBtn')?.addEventListener('click', logout);
+            initDashboard();
+        });
+    </script>
+</body>
+</html>

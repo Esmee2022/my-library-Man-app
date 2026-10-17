@@ -1,0 +1,15 @@
+{
+  "name": "login-and-signup-system",
+  "version": "1.0.0",
+  "description": "Library Management System with two-factor authentication and role-based access",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "start:http": "node server/server.js --http",
+    "seed": "node server/scripts/seed.js",
+    "test": "node server/tests/test_flow.js",
+    "test:auth-api": "node server/tests/test_auth_smoke.js",
+    "test:cloud-schema": "node server/tests/test_cloud_schema.js",
+    "test:all": "node server/tests/test_flow.js && node server/tests/test_auth_smoke.js && node server/tests/test_cloud_schema.js"
+  }
+}

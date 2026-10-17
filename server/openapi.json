@@ -1,0 +1,32 @@
+{
+  "openapi": "3.0.3",
+  "info": {"title": "Library Management API", "version": "1.0.0", "description": "Express API. Web requests use an httpOnly session cookie and CSRF token for mutations; Expo requests may use the short-lived bearer session token and CSRF token. Library roles are loaded from the cloud profile."},
+  "servers": [{"url": "/api"}],
+  "components": {"securitySchemes": {"sessionCookie": {"type": "apiKey", "in": "cookie", "name": "session_id"}, "bearerAuth": {"type": "http", "scheme": "bearer"}, "csrfToken": {"type": "apiKey", "in": "header", "name": "X-CSRF-Token"}}},
+  "security": [{"sessionCookie": []}, {"bearerAuth": []}],
+  "paths": {
+    "/health": {"get": {"summary": "Service health", "security": [], "responses": {"200": {"description": "Health state"}}}},
+    "/auth/login": {"post": {"summary": "Verify password (authentication step one)", "responses": {"200": {"description": "TOTP required or enrollment started"}, "401": {"description": "Invalid credentials"}}}},
+    "/auth/2fa": {"post": {"summary": "Verify TOTP or one-time recovery code and create session", "responses": {"200": {"description": "Authenticated"}, "401": {"description": "Verification failed"}}}},
+    "/auth/me": {"get": {"summary": "Current session and CSRF token", "responses": {"200": {"description": "Current user"}}}},
+    "/auth/logout": {"post": {"summary": "Revoke current session", "security": [{"sessionCookie": [], "csrfToken": []}], "responses": {"200": {"description": "Logged out"}}}},
+    "/auth/password": {"post": {"summary": "Change own password; revokes sessions", "security": [{"sessionCookie": [], "csrfToken": []}], "responses": {"200": {"description": "Password changed"}}}},
+    "/library/me": {"get": {"summary": "Library role profile", "responses": {"200": {"description": "Library user"}, "503": {"description": "Migration or cloud configuration missing"}}}},
+    "/library/categories": {"get": {"summary": "List active library categories", "responses": {"200": {"description": "Categories"}}}},
+    "/library/catalog": {"get": {"summary": "Search active catalogue, categories, physical inventory, and eBook license availability", "parameters": [{"name":"q","in":"query","schema":{"type":"string"}}], "responses": {"200": {"description": "Catalogue"}}}},
+    "/library/books": {"post": {"summary": "Create a title with physical copies and/or eBook licenses (administrator)", "security": [{"sessionCookie": [], "csrfToken": []}], "responses": {"201": {"description": "Book created"}}}},
+    "/library/books/{id}": {"patch": {"summary": "Update or archive a title (administrator)", "security": [{"sessionCookie": [], "csrfToken": []}], "parameters": [{"name":"id","in":"path","required":true,"schema":{"type":"string"}}], "responses": {"200": {"description": "Book updated"}}}},
+    "/library/copies": {"post": {"summary": "Add copies to a title (administrator)", "security": [{"sessionCookie": [], "csrfToken": []}], "responses": {"201": {"description": "Copies created"}}}},
+    "/library/users": {"get": {"summary": "Search users for circulation (librarian or administrator)", "responses": {"200": {"description": "Users"}}}},
+    "/library/users/{id}/access": {"patch": {"summary": "Activate/deactivate account or library access (administrator)", "security": [{"sessionCookie": [], "csrfToken": []}], "parameters": [{"name":"id","in":"path","required":true,"schema":{"type":"integer"}}], "responses": {"200": {"description": "Access updated"}}}},
+    "/library/loans": {"get": {"summary": "Loan history (student sees own history)", "responses": {"200": {"description": "Loan list"}}}, "post": {"summary": "Issue a copy (librarian or administrator)", "security": [{"sessionCookie": [], "csrfToken": []}], "responses": {"201": {"description": "Loan issued"}}}},
+    "/library/loans/{id}/return": {"post": {"summary": "Return an open loan (librarian or administrator)", "security": [{"sessionCookie": [], "csrfToken": []}], "parameters": [{"name":"id","in":"path","required":true,"schema":{"type":"string"}}], "responses": {"200": {"description": "Return recorded"}}}},
+    "/library/loans/{id}/due-date": {"patch": {"summary": "Approve a future due date extension (administrator)", "security": [{"sessionCookie": [], "csrfToken": []}], "parameters": [{"name":"id","in":"path","required":true,"schema":{"type":"string"}}], "responses": {"200": {"description": "Due date extended and audited"}}}},
+    "/library/reports/summary": {"get": {"summary": "Library reports (manager or administrator)", "responses": {"200": {"description": "Counts and circulation"}}}},
+    "/library/reports/activity": {"get": {"summary": "Permitted circulation staff activity (manager or administrator)", "responses": {"200": {"description": "Recent issue, return, and due date activity"}}}},
+    "/library/audit": {"get": {"summary": "Library audit events (administrator)", "responses": {"200": {"description": "Audit events"}}}},
+    "/library/backups": {"get": {"summary": "List encrypted backups (administrator)", "responses": {"200": {"description": "Backup metadata"}}}, "post": {"summary": "Create encrypted cloud backup (administrator)", "security": [{"sessionCookie": [], "csrfToken": []}], "responses": {"201": {"description": "Backup created"}}}},
+    "/library/backups/{id}/preview": {"get": {"summary": "Validate backup and preview counts without restoring (administrator)", "parameters": [{"name":"id","in":"path","required":true,"schema":{"type":"string"}}], "responses": {"200": {"description": "Read-only preview"}}}},
+    "/library/backups/{id}/restore": {"post": {"summary": "Restore validated backup; requires typed confirmation (administrator)", "security": [{"sessionCookie": [], "csrfToken": []}], "parameters": [{"name":"id","in":"path","required":true,"schema":{"type":"string"}}], "responses": {"200": {"description": "Restored"}}}}
+  }
+}

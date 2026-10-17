@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Library Workspace</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.css">
+  <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="library.css"><link rel="stylesheet" href="library-visuals.css">
+</head>
+<body class="library-page">
+  <div class="book-backdrop" aria-hidden="true"></div>
+  <div class="bg-circle bg1"></div><div class="bg-circle bg2"></div><div class="bg-circle bg3"></div>
+  <main class="library-shell">
+    <header class="library-card topbar">
+      <div><h1 id="workspaceTitle">Library Workspace</h1><p class="subtitle" id="welcome">Connecting to your account…</p><span class="role-badge" id="roleBadge">Loading</span><p class="workspace-clock" id="workspaceClock" aria-live="off"></p></div>
+      <div class="top-actions"><a class="library-button subtle" href="dashboard.html">Account security</a><button class="library-button danger" id="logoutButton">Log out</button></div>
+    </header>
+    <nav class="library-nav library-card" aria-label="Library sections">
+      <button data-view="catalog" class="active">Catalogue</button><button data-view="loans">My loans</button>
+      <button data-view="operations" data-roles="librarian,administrator">Circulation</button>
+      <button data-view="reports" data-roles="manager,administrator">Reports</button>
+      <button data-view="admin" data-roles="administrator">Administration</button>
+    </nav>
+    <div id="notice" class="notice" role="status" hidden></div>
+    <details class="library-card account-settings"><summary>Account security · Change password</summary><form id="changePasswordForm" class="form-grid"><label>Current password<input name="currentPassword" type="password" autocomplete="current-password" required></label><label>New password<input name="newPassword" type="password" autocomplete="new-password" minlength="10" required></label><label>Confirm new password<input name="confirmPassword" type="password" autocomplete="new-password" minlength="10" required></label><button class="library-button">Change password</button></form></details>
+    <section class="library-card view" id="catalogView">
+      <div class="section-head"><div><h2>Catalogue</h2><p>Browse the physical collection and available eBook licenses.</p></div>
+        <form id="searchForm" class="search-form"><input id="searchTerm" placeholder="Title, author, ISBN or category" aria-label="Search catalogue"><button class="library-button">Search</button></form></div>
+      <div class="catalog-filters"><label>Category<select id="categoryFilter"><option value="">All categories</option></select></label><label>Format<select id="formatFilter"><option value="">All formats</option><option value="physical">Physical books</option><option value="ebook">eBooks</option></select></label><span id="catalogCount" class="catalog-count"></span></div>
+      <div class="book-grid" id="booksBody" aria-live="polite"></div>
+    </section>
+    <section class="library-card view" id="loansView" hidden><div class="section-head"><div><h2>Loan history</h2><p>Your current and returned books.</p></div><button class="library-button subtle" id="refreshLoans">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>Book</th><th>Borrowed</th><th>Due</th><th>Returned</th><th>Status</th></tr></thead><tbody id="myLoansBody"></tbody></table></div></section>
+    <section class="library-card view" id="operationsView" hidden>
+      <div class="section-head"><div><h2>Circulation desk</h2><p>Issue available copies and record returns.</p></div></div>
+      <div class="form-grid"><form id="issueForm" class="inset-panel"><h3>Issue a book</h3><label>Borrower<select id="borrowerSelect" required></select></label><label>Available copy<select id="copySelect" required></select></label><label>Due date<input id="dueDate" type="date" required></label><button class="library-button">Issue book</button></form>
+      <div class="inset-panel"><h3>Open loans</h3><p>Use the return action in the loan table below.</p><button class="library-button subtle" id="refreshAllLoans">Refresh loans</button></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Book</th><th>Borrower</th><th>Borrowed</th><th>Due</th><th></th></tr></thead><tbody id="allLoansBody"></tbody></table></div>
+    </section>
+    <section class="library-card view" id="reportsView" hidden><div class="section-head"><div><h2>Library overview</h2><p>Circulation and inventory summary.</p></div><button class="library-button subtle" id="refreshReports">Refresh</button></div><div class="summary-grid" id="summaryGrid"></div><h3>Recent circulation</h3><div class="table-wrap"><table><thead><tr><th>Book</th><th>Borrower</th><th>Borrowed</th><th>Due</th><th>Status</th></tr></thead><tbody id="reportLoansBody"></tbody></table></div><h3>Staff activity</h3><div class="table-wrap"><table><thead><tr><th>When</th><th>Action</th><th>Staff member</th><th>Record</th></tr></thead><tbody id="reportActivityBody"></tbody></table></div></section>
+    <section class="library-card view" id="adminView" hidden>
+      <div class="section-head"><div><h2>Administration</h2><p>Manage accounts, titles, inventory and audit activity.</p></div><button class="library-button subtle" id="refreshAdmin">Refresh administration</button></div>
+      <div class="form-grid"><form id="bookForm" class="inset-panel"><h3>Add a title</h3><label>Title<input name="title" required maxlength="240"></label><label>Author<input name="author" required maxlength="180"></label><label>ISBN<input name="isbn" maxlength="32"></label><label>Category<select name="category" id="bookCategorySelect" required><option value="">Choose a category</option></select></label><label>Publisher<input name="publisher" maxlength="180"></label><label>Publication year<input name="publicationYear" type="number" min="0" max="2200"></label><label>Physical copies<input name="physicalCopies" type="number" value="1" min="0" max="500"></label><label>eBook licenses<input name="ebookLicenses" type="number" value="0" min="0" max="500"></label><label>eBook reading link<input name="ebookUrl" type="url" placeholder="Required when adding eBook licenses"></label><button class="library-button">Save title</button></form>
+      <form id="inventoryForm" class="inset-panel"><h3>Add inventory</h3><label>Title<select name="bookId" id="inventoryBookId" required></select></label><label>Format<select name="format"><option value="physical">Physical copy</option><option value="ebook">eBook license</option></select></label><label>eBook reading link<input name="digitalUrl" type="url" placeholder="Required for an eBook license"></label><label>Number of copies or licenses<input name="count" type="number" value="1" min="1" max="500" required></label><button class="library-button">Add inventory</button></form>
+      <form id="userForm" class="inset-panel"><h3>Create an account</h3><label>Full name<input name="name" required maxlength="140"></label><label>Email<input name="email" type="email" required maxlength="254"></label><label>Temporary password<input name="password" type="password" required minlength="10" autocomplete="new-password"></label><label>Library role<select name="libraryRole"><option value="student">Student</option><option value="librarian">Librarian</option><option value="manager">Manager</option><option value="administrator">Administrator</option></select></label><button class="library-button">Create account</button></form></div>
+      <h3>Users and access</h3><div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Account</th><th>Library access</th><th>Actions</th></tr></thead><tbody id="usersBody"></tbody></table></div>
+      <details class="security-panel"><summary>Account security details</summary><div id="securityDetails" class="security-details">Choose a user and select View security.</div></details>
+      <h3>Recent audit events</h3><div class="table-wrap"><table><thead><tr><th>When</th><th>Action</th><th>Record</th></tr></thead><tbody id="auditBody"></tbody></table></div>
+      <div class="section-head backup-head"><div><h3>Encrypted cloud backups</h3><p>Restore replaces library data. Review the preview and type the confirmation phrase before restoring.</p></div><div class="backup-actions"><button class="library-button" id="createBackup">Create backup</button><label class="visually-hidden" for="restoreBackupSelect">Choose a backup</label><select id="restoreBackupSelect" aria-label="Choose backup to restore"><option value="">Choose a backup to restore</option></select><button class="library-button danger" id="restoreBackupButton" disabled>Restore backup</button></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Created</th><th>Size</th><th>Record counts</th><th>Actions</th></tr></thead><tbody id="backupsBody"></tbody></table></div>
+    </section>
+    <footer class="workspace-footer"><span>Library Management System</span><a href="dashboard.html">Security settings</a></footer>
+  </main>
+  <script src="library.js" defer></script>
+</body></html>

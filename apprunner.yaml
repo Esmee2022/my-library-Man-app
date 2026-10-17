@@ -1,0 +1,18 @@
+version: 1.0
+runtime: nodejs22
+build:
+  commands:
+    build:
+      - npm ci --prefix server --omit=dev
+run:
+  command: node server/server.js
+  network:
+    port: 8080
+    env: PORT
+  env:
+    - name: NODE_ENV
+      value: production
+    - name: AUTH_STORE
+      value: supabase
+    - name: USE_HTTPS
+      value: "false"

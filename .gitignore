@@ -1,0 +1,32 @@
+# Environment variables and secrets
+.env
+.env.local
+*.env
+
+# SQLite Database files (kept outside public directories and ignored from git)
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+server/database/*.db
+server/database/*.db-journal
+
+# SSL/TLS Certificates and keys
+certs/*.pem
+server/certs/*.pem
+server/certs/*.key
+server/certs/*.crt
+
+# Dependencies
+node_modules/
+.expo/
+dist/
+web-build/
+
+# Logs and scratch
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+scratch/
