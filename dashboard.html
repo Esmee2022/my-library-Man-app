@@ -210,6 +210,31 @@
             max-height: 380px;
             overflow-y: auto;
         }
+        .mobile-dashboard-logout { display: none; }
+        @media(max-width:640px) {
+            html, body.dashboard-page { width:100%; max-width:100%; overflow-x:hidden; box-sizing:border-box; }
+            body.dashboard-page { padding:14px 10px; }
+            .dashboard-container { width:100%; max-width:100%; min-width:0; }
+            .dash-card { width:100%; min-width:0; box-sizing:border-box; padding:16px; }
+            .dash-header { align-items:flex-start; min-width:0; }
+            .user-meta { min-width:0; max-width:100%; align-items:flex-start; }
+            .user-meta>div:last-child { min-width:0; overflow-wrap:anywhere; }
+            #userEmail { overflow-wrap:anywhere; }
+            .header-actions { width:100%; min-width:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+            .header-actions>* { min-width:0; max-width:100%; box-sizing:border-box; white-space:normal; overflow-wrap:anywhere; }
+            .header-actions #logoutBtn { display:none; }
+            .stats-grid,.form-row { grid-template-columns:minmax(0,1fr); }
+            .form-row>* ,.input-group,.select-group { min-width:0; max-width:100%; }
+            input,select,textarea { max-width:100%; box-sizing:border-box; }
+            .stat-value { overflow-wrap:anywhere; }
+            .table-scroll { width:100%; max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; }
+            .table-scroll table { min-width:700px; }
+            .audit-scroll { width:100%; max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; }
+            .audit-scroll table { min-width:700px; }
+            .security-row { min-width:0; overflow-wrap:anywhere; }
+            .restore-controls { min-width:0; }
+            .mobile-dashboard-logout { display:block; width:100%; max-width:calc(100% - 20px); margin:0 auto 24px; box-sizing:border-box; text-align:center; }
+        }
     </style>
 </head>
 <body class="dashboard-page">
@@ -401,6 +426,8 @@
             </p>
         </div>
     </div>
+
+    <button type="button" class="logout-btn mobile-dashboard-logout" id="mobileLogoutBtn">Log out</button>
 
     <script>
         let currentUser = null;
@@ -720,10 +747,10 @@
         }
 
         let loggingOut = false;
-        async function logout() {
+        async function logout(event) {
             if (loggingOut) return;
             loggingOut = true;
-            const button = document.getElementById('logoutBtn');
+            const button = event?.currentTarget || document.getElementById('logoutBtn');
             if (button) { button.disabled = true; button.textContent = 'Signing out…'; }
             try {
                 await fetch('/api/auth/logout', {
@@ -741,8 +768,10 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('logoutBtn')?.addEventListener('click', logout);
+            document.getElementById('mobileLogoutBtn')?.addEventListener('click', logout);
             initDashboard();
         });
     </script>
 </body>
 </html>
+
