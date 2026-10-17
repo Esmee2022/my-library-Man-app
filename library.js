@@ -290,7 +290,7 @@ $('changePasswordForm').addEventListener('submit', async e => {
   catch(err) { message(err.message,'error'); }
 });
 let libraryLoggingOut = false;
-$('logoutButton').addEventListener('click', async event => {
+async function logoutLibrary(event) {
   if (libraryLoggingOut) return;
   libraryLoggingOut = true;
   const button = event.currentTarget;
@@ -298,7 +298,9 @@ $('logoutButton').addEventListener('click', async event => {
   button.textContent = 'Signing out…';
   try { await api('/api/auth/logout',{method:'POST',body:'{}',signal:AbortSignal.timeout(5000)}); }
   finally { sessionStorage.clear(); location.replace('index.html'); }
-});
+}
+$('logoutButton').addEventListener('click', logoutLibrary);
+$('mobileLogoutButton').addEventListener('click', logoutLibrary);
 
 async function start() {
   try {
@@ -322,3 +324,4 @@ async function start() {
   }
 }
 start();
+
