@@ -424,6 +424,7 @@ async function loadBackup(client, metadata) {
 
 router.post('/library/backups', requireAuth, requireLibraryRole(MANAGEMENT), async (req, res) => {
   let path;
+  let stage = 'Supabase database snapshot';
   try {
     const client = db();
     const { data: snapshot, error: snapshotError } = await client.rpc('create_lms_snapshot');
@@ -434,14 +435,26 @@ router.post('/library/backups', requireAuth, requireLibraryRole(MANAGEMENT), asy
     const id = crypto.randomUUID();
     path = `${id}.enc`;
     // Mirror the encrypted snapshot to the private AWS backup bucket.
+    stage = 'AWS S3 upload';
     await awsBackup.putEncryptedBackup(path, payload);
+    stage = 'Supabase backup storage upload';
     const { error: uploadError } = await client.storage.from(BACKUP_BUCKET).upload(path,payload,{contentType:'application/octet-stream',upsert:false});
     if (uploadError) throw uploadError;
     const counts = {users:snapshot.users.length,books:snapshot.books.length,copies:snapshot.copies.length,loans:snapshot.loans.length,auditEvents:snapshot.auditEvents.length};
+    stage = 'Supabase backup metadata save';
     const { data, error } = await client.from('backup_metadata').insert({id,object_path:path,created_by:req.libraryActor.id,byte_length:payload.length,record_counts:counts}).select('id,created_at,byte_length,record_counts').single();
     if (error) { await client.storage.from(BACKUP_BUCKET).remove([path]); throw error; }
     res.status(201).json({ backup:data });
-  } catch (e) { fail(res,e); }
+  } catch (e) {
+    const detail = String(e.message || 'Backup request failed').slice(0, 400);
+    console.error('[library backup] failed', { stage, code: e.code || null, status: e.status || null, message: detail });
+    const message = stage === 'Supabase database snapshot'
+      ? 'Could not read the library database snapshot. Check the LMS migration and Supabase connection.'
+      : stage === 'AWS S3 upload'
+        ? 'Could not upload the encrypted backup to AWS. Check the Render AWS credentials, region, bucket, and S3 permissions.'
+        : 'Could not save the backup in Supabase. Check the LMS migration and Supabase storage configuration.';
+    res.status(e.status || 503).json({ error: message });
+  }
 });
 
 router.get('/library/backups', requireAuth, requireLibraryRole(MANAGEMENT), async (req,res) => {
