@@ -298,6 +298,7 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="workspace-theme.css">
 </head>
 <body class="dashboard-page">
     <div class="book-backdrop" aria-hidden="true"></div>
@@ -305,9 +306,16 @@
     <div class="bg-circle bg2"></div>
     <div class="bg-circle bg3"></div>
 
+    <aside class="dashboard-sidebar" aria-label="Workspace navigation">
+        <a class="dashboard-brand" href="library.html">LIBRARY<span>WORKSPACE</span></a>
+        <a class="dashboard-side-link" href="library.html">← Open library workspace</a>
+        <a class="dashboard-side-link active" href="#securityOverview">Security overview</a>
+        <div class="dashboard-sidebar-foot">SECURE LIBRARY<br>ADMINISTRATION</div>
+    </aside>
+
     <div class="dashboard-container">
         <!-- Top Bar Header -->
-        <div class="dash-card">
+        <div class="dash-card" id="securityOverview">
             <div class="dash-header">
                 <div class="user-meta">
                     <div class="user-avatar">
