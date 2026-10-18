@@ -6,10 +6,40 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
     "newArchEnabled": true,
-    "plugins": ["expo-router", ["expo-secure-store", {"configureAndroidBackup": true}]],
-    "ios": {"supportsTablet": true, "bundleIdentifier": "edu.library.workspace", "config": {"usesNonExemptEncryption": false}},
-    "android": {"package": "edu.library.workspace"},
-    "experiments": {"typedRoutes": true}
+    "plugins": [
+      "expo-router",
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true
+        }
+      ]
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "edu.library.workspace",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "edu.library.workspace",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#19365d"
+      }
+    },
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9638ea5c-8bf4-42e8-a034-2d66b016df85"
+      }
+    }
   }
 }
+
