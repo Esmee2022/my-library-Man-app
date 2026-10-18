@@ -1,13 +1,14 @@
 import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Image, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 
 const BASE = (process.env.EXPO_PUBLIC_API_URL || '').replace(/\/$/, '');
 type Profile = { role: string; display_name: string; email: string };
 type Book = { id: string; title: string; author: string; isbn?: string; category?: string; availableCopies: number; totalCopies: number; availablePhysicalCopies?: number; physicalCopies?: number; availableEbookLicenses?: number; ebookLicenses?: number; formats?: string[] };
 type Loan = { id: string; borrowed_at: string; due_at: string; returned_at?: string; copy?: { barcode: string; format?: string; digital_url?: string; book?: { title: string } }; borrower?: { display_name: string } };
 type Auth = { token: string; csrf: string; user: { email: string; name?: string; role: string } };
-const C = { blue: '#087cff', dark: '#303943', muted: '#7c858e', bg: '#e7ebf0', red: '#b42318' };
+const C = { blue: '#087cff', dark: '#303943', muted: '#7c858e', bg: '#eaf0f5', card: 'rgba(231,235,240,0.96)', paper: '#f7f9fc', red: '#b42318', green: '#23734b', navy: '#19365d', line: '#d7e0e8' };
+const COVER_COLORS = [['#173f5f','#20639b','#3caea3'],['#402b50','#76528b','#c06c84'],['#30475e','#52616b','#84a9ac'],['#4b3832','#8d6e63','#d7b49e'],['#183a37','#2d6a4f','#95d5b2'],['#422a1f','#a44a3f','#e9c46a']];
 
 async function readAuth(): Promise<Auth | null> { try { const s = await SecureStore.getItemAsync('library-auth'); return s ? JSON.parse(s) : null; } catch { return null; } }
 async function request(path: string, auth: Auth | null, init: RequestInit = {}) {
@@ -24,10 +25,12 @@ async function request(path: string, auth: Auth | null, init: RequestInit = {}) 
 }
 
 export default function Home() {
+  const { width } = useWindowDimensions();
   const [auth,setAuth] = useState<Auth|null>(null); const [profile,setProfile] = useState<Profile|null>(null);
   const [step,setStep] = useState<any>(null); const [email,setEmail] = useState(''); const [password,setPassword] = useState(''); const [code,setCode] = useState('');
   const [query,setQuery] = useState(''); const [books,setBooks] = useState<Book[]>([]); const [loans,setLoans] = useState<Loan[]>([]); const [users,setUsers] = useState<any[]>([]);
-  const [tab,setTab] = useState<'catalog'|'loans'|'operations'|'reports'>('catalog'); const [summary,setSummary] = useState<any>(null); const [busy,setBusy] = useState(false); const [error,setError] = useState(''); const [info,setInfo] = useState('');
+  const [tab,setTab] = useState<'catalog'|'loans'|'operations'|'reports'|'admin'>('catalog'); const [summary,setSummary] = useState<any>(null); const [busy,setBusy] = useState(false); const [error,setError] = useState(''); const [info,setInfo] = useState('');
+  const columns = width >= 720 ? 3 : width >= 520 ? 2 : 2;
 
   async function loadSession(a: Auth) { setAuth(a); const p = await request('/library/me',a); setProfile(p.user); await loadData(a,p.user.role); }
   async function loadData(a = auth, role = profile?.role) {
@@ -48,31 +51,111 @@ export default function Home() {
   } catch(e:any) { setError(e.message); } finally { setBusy(false); } }
   async function logout() { try { if(auth) await request('/auth/logout',auth,{method:'POST',body:'{}'}); } catch {} await SecureStore.deleteItemAsync('library-auth'); setAuth(null);setProfile(null);setBooks([]);setLoans([]);setStep(null); }
   async function recordReturn(id:string) { if(!auth) return; setBusy(true);setError('');try{await request(`/library/loans/${id}/return`,auth,{method:'POST',body:'{}'});setInfo('Return recorded.');await loadData();}catch(e:any){setError(e.message);}finally{setBusy(false);} }
-  async function search() { try { await loadData(); } catch(e:any){setError(e.message);} }
+  async function search() { setBusy(true); setError(''); try { await loadData(); } catch(e:any){setError(e.message);} finally { setBusy(false); } }
 
-  if (!auth || !profile) return <ScrollView style={s.scroll} contentContainerStyle={s.page} horizontal={false} showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled"><View style={s.card}><Text style={s.brand}>Library Workspace</Text><Text style={s.muted}>Secure access with two-factor authentication</Text>
-    {!!error&&<Text style={s.error}>{error}</Text>}
-    {!step ? <><TextInput style={s.input} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="Email address"/><TextInput style={s.input} value={password} onChangeText={setPassword} secureTextEntry placeholder="Password"/><Button label={busy?'Checking…':'Continue'} onPress={login} disabled={busy||!email||!password}/></> : <>
-      {!step.enrolled&&<View style={s.enroll}>{step.qrCode&&<Image source={{uri:step.qrCode}} style={s.qr}/>}<Text style={s.muted}>Scan in an authenticator app or enter this setup key:</Text><Text selectable style={s.codeText}>{step.manualSecret}</Text>{(step.recoveryCodes||[]).map((v:string)=><Text key={v} selectable style={s.codeText}>{v}</Text>)}</View>}
-      <TextInput style={s.input} value={code} onChangeText={setCode} autoCapitalize="characters" autoCorrect={false} placeholder="6-digit code or recovery code"/><Button label={busy?'Verifying…':'Verify and sign in'} onPress={verify} disabled={busy||!code}/><Pressable onPress={()=>setStep(null)}><Text style={s.link}>Back to login</Text></Pressable>
-    </>}
-  </View></ScrollView>;
+  if (!auth || !profile) return <ScrollView style={s.scroll} contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
+    <View style={[s.loginCard,{maxWidth:480}]}>
+      <BrandMark large />
+      <Text style={s.loginEyebrow}>LIBRARY WORKSPACE</Text>
+      <Text style={s.loginTitle}>Welcome back</Text>
+      <Text style={s.loginIntro}>Sign in securely to your library account.</Text>
+      {!!error&&<Text style={s.error}>{error}</Text>}
+      {!step ? <>
+        <Text style={s.label}>Email address</Text><TextInput style={s.input} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" placeholder="you@example.com" placeholderTextColor="#8a96a3" />
+        <Text style={s.label}>Password</Text><TextInput style={s.input} value={password} onChangeText={setPassword} secureTextEntry autoComplete="current-password" placeholder="Enter your password" placeholderTextColor="#8a96a3" />
+        <Button label={busy?'Signing in…':'Continue'} onPress={login} disabled={busy||!email||!password}/>
+      </> : <>
+        {!step.enrolled&&<View style={s.enroll}>{step.qrCode&&<Image source={{uri:step.qrCode}} style={s.qr}/>}<Text style={s.bodyText}>Scan with an authenticator app or enter the setup key:</Text><Text selectable style={s.codeText}>{step.manualSecret}</Text>{(step.recoveryCodes||[]).map((v:string)=><Text key={v} selectable style={s.codeText}>{v}</Text>)}</View>}
+        <Text style={s.label}>Verification code</Text><TextInput style={s.input} value={code} onChangeText={setCode} autoCapitalize="characters" autoCorrect={false} keyboardType="number-pad" placeholder="6-digit or recovery code" placeholderTextColor="#8a96a3" />
+        <Button label={busy?'Verifying…':'Verify and sign in'} onPress={verify} disabled={busy||!code}/><Pressable onPress={()=>setStep(null)}><Text style={s.link}>Back to login</Text></Pressable>
+      </>}
+      <Text style={s.loginFoot}>Protected with two-factor authentication</Text>
+    </View>
+  </ScrollView>;
 
-  const tabs: Array<typeof tab> = ['catalog','loans',...(profile.role==='librarian'||profile.role==='administrator'?['operations' as const]:[]),...(profile.role==='manager'||profile.role==='administrator'?['reports' as const]:[])];
-  return <ScrollView style={s.scroll} contentContainerStyle={s.page} horizontal={false} showsHorizontalScrollIndicator={false}>
-    <View style={s.card}>
-    <View style={s.header}><View style={s.profile}><Text style={s.brand}>Library</Text><Text style={s.muted}>{profile.display_name} · {profile.role}</Text></View></View>
-    {!!error&&<Text style={s.error}>{error}</Text>}{!!info&&<Text style={s.success}>{info}</Text>}
-    <View style={s.tabs}>{tabs.map(t=><Pressable key={t} style={[s.tab,tab===t&&s.selected]} onPress={()=>{setTab(t);setError('');}}><Text style={[s.tabText,tab===t&&s.selectedText]}>{t==='catalog'?'Catalogue':t==='loans'?'My loans':t==='operations'?'Circulation':'Reports'}</Text></Pressable>)}</View>
-    {tab==='catalog'&&<><TextInput style={s.input} value={query} onChangeText={setQuery} placeholder="Search title, author, ISBN or category" onSubmitEditing={search}/><Button label="Search" onPress={search}/>{books.map(b=><View key={b.id} style={s.item}><Text style={s.itemTitle}>{b.title}</Text><Text style={s.muted}>{b.author}{b.category?` · ${b.category}`:''}</Text><Text style={s.available}>{(b.formats||['physical']).map(f=>f==='ebook'?'eBook':'Physical').join(' + ')}</Text><Text style={s.muted}>Physical: {b.availablePhysicalCopies??b.availableCopies} available of {b.physicalCopies??b.totalCopies} · eBook licenses: {b.availableEbookLicenses||0} available of {b.ebookLicenses||0}</Text></View>)}</>}
-    {tab==='loans'&&loans.map(l=><View key={l.id} style={s.item}><Text style={s.itemTitle}>{l.copy?.book?.title||'Book'} · {l.copy?.format==='ebook'?'eBook':'Physical'}</Text>{profile.role!=='student'&&<Text style={s.muted}>{l.borrower?.display_name}</Text>}<Text style={s.muted}>Borrowed {new Date(l.borrowed_at).toLocaleDateString()} · Due {new Date(l.due_at).toLocaleDateString()}</Text><Text style={Date.parse(l.due_at)<Date.now()&&!l.returned_at?s.overdue:s.available}>{l.returned_at?'Returned':Date.parse(l.due_at)<Date.now()?'Overdue':'On loan'}</Text>{l.copy?.format==='ebook'&&!l.returned_at&&!!l.copy.digital_url&&<Pressable onPress={()=>Linking.openURL(l.copy!.digital_url!)}><Text style={s.link}>Open eBook</Text></Pressable>}{profile.role==='librarian'&&<Button label="Record return" onPress={()=>recordReturn(l.id)} disabled={busy}/>}</View>)}
-    {tab==='operations'&&<><Text style={s.section}>Open loans</Text>{loans.map(l=><View key={l.id} style={s.item}><Text style={s.itemTitle}>{l.copy?.book?.title||'Book'}</Text><Text style={s.muted}>{l.borrower?.display_name} · due {new Date(l.due_at).toLocaleDateString()}</Text><Button label="Record return" onPress={()=>recordReturn(l.id)} disabled={busy}/></View>)}<Text style={s.section}>Students eligible to borrow</Text>{users.map(u=><Text key={u.id} style={s.muted}>{u.display_name} · {u.email}</Text>)}<Text style={s.muted}>Book issuing is available at the full Circulation desk in the web workspace.</Text></>}
-    {tab==='reports'&&summary&&Object.entries({'Titles':summary.totalTitles,'Physical copies':summary.copies,'eBook licenses':summary.ebookLicenses,'Active loans':summary.activeLoans,'Returned':summary.returnedLoans,'Overdue':summary.overdueLoans}).map(([k,v])=><View key={k} style={s.item}><Text style={s.itemTitle}>{String(v)}</Text><Text style={s.muted}>{k}</Text></View>)}
-    <Button label="Refresh" onPress={()=>loadData()} disabled={busy}/>
-    <Pressable style={s.logoutButton} onPress={logout} accessibilityRole="button"><Text style={s.logoutText}>Log out</Text></Pressable>
-  </View></ScrollView>;
+  const isStaff=profile.role==='librarian'||profile.role==='administrator';
+  const tabs: Array<typeof tab> = ['catalog','loans',...(isStaff?['operations' as const]:[]),...(profile.role==='manager'||profile.role==='administrator'?['reports' as const]:[]),...(profile.role==='administrator'?['admin' as const]:[])];
+  const labels: Record<typeof tab,string>={catalog:'Catalogue',loans:'My loans',operations:'Circulation',reports:'Reports',admin:'Administration'};
+  return <ScrollView style={s.scroll} contentContainerStyle={s.page} showsVerticalScrollIndicator={false}>
+    <View style={s.shell}>
+      <View style={s.headerCard}>
+        <View style={s.brandRow}><BrandMark /><View style={s.brandCopy}><Text style={s.headerTitle}>Library Workspace</Text><Text style={s.headerWelcome}>Welcome, {profile.display_name}</Text></View></View>
+        <View style={s.roleBadge}><Text style={s.roleBadgeText}>{profile.role}</Text></View>
+      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.nav} style={s.navScroller}>
+        {tabs.map(t=><Pressable key={t} style={[s.navItem,tab===t&&s.navItemActive]} onPress={()=>{setTab(t);setError('');setInfo('');}}><Text style={[s.navText,tab===t&&s.navTextActive]}>{labels[t]}</Text></Pressable>)}
+      </ScrollView>
+      {!!error&&<Text style={s.error}>{error}</Text>}{!!info&&<Text style={s.success}>{info}</Text>}
+
+      {tab==='catalog'&&<View style={s.sectionCard}>
+        <SectionHeading title="Catalogue" subtitle="Browse the physical collection and available eBook licenses." />
+        <View style={s.searchRow}><TextInput style={[s.input,s.searchInput]} value={query} onChangeText={setQuery} placeholder="Title, author, ISBN or category" placeholderTextColor="#8a96a3" returnKeyType="search" onSubmitEditing={search}/><Pressable style={s.searchButton} onPress={search} accessibilityRole="button"><Text style={s.searchButtonText}>Search</Text></Pressable></View>
+        <Text style={s.countText}>{books.length} {books.length===1?'title':'titles'}</Text>
+        <View style={s.bookGrid}>{books.map((b,i)=><BookCard key={b.id} book={b} index={i} columns={columns}/>)}</View>
+        {!books.length&&<View style={s.empty}><Text style={s.emptyTitle}>No titles to show</Text><Text style={s.bodyText}>Try a different search or refresh the catalogue.</Text></View>}
+      </View>}
+
+      {tab==='loans'&&<View style={s.sectionCard}><SectionHeading title="Loan history" subtitle="Your current and returned books."/>
+        {!loans.length&&<EmptyState message="No loans to show yet."/>}
+        {loans.map(l=><View key={l.id} style={s.loanCard}><View style={s.loanHead}><Text style={s.loanTitle}>{l.copy?.book?.title||'Book'}</Text><StatusBadge label={l.returned_at?'Returned':Date.parse(l.due_at)<Date.now()?'Overdue':'On loan'} danger={!l.returned_at&&Date.parse(l.due_at)<Date.now()}/></View>
+          <Text style={s.bodyText}>{l.copy?.format==='ebook'?'eBook license':'Physical copy'}{profile.role!=='student'&&l.borrower?.display_name?` · ${l.borrower.display_name}`:''}</Text>
+          <Text style={s.metaText}>Borrowed {new Date(l.borrowed_at).toLocaleDateString()} · Due {new Date(l.due_at).toLocaleDateString()}</Text>
+          {l.copy?.format==='ebook'&&!l.returned_at&&!!l.copy.digital_url&&<Pressable style={s.inlineLink} onPress={()=>Linking.openURL(l.copy!.digital_url!)}><Text style={s.inlineLinkText}>Open eBook</Text></Pressable>}
+          {profile.role==='librarian'&&!l.returned_at&&<Button label="Record return" onPress={()=>recordReturn(l.id)} disabled={busy}/>}
+        </View>)}
+      </View>}
+
+      {tab==='operations'&&<View style={s.sectionCard}><SectionHeading title="Circulation desk" subtitle="Monitor open loans and eligible readers."/>
+        <Text style={s.sectionTitle}>Open loans</Text>{!loans.length&&<EmptyState message="There are no open loans right now."/>}
+        {loans.map(l=><View key={l.id} style={s.loanCard}><Text style={s.loanTitle}>{l.copy?.book?.title||'Book'}</Text><Text style={s.bodyText}>{l.borrower?.display_name||'Reader'} · due {new Date(l.due_at).toLocaleDateString()}</Text><Button label="Record return" onPress={()=>recordReturn(l.id)} disabled={busy}/></View>)}
+        <Text style={s.sectionTitle}>Students eligible to borrow</Text>{!users.length&&<Text style={s.bodyText}>No eligible students found.</Text>}{users.map(u=><View key={u.id} style={s.userRow}><View style={s.userAvatar}><Text style={s.userInitial}>{String(u.display_name||'R').charAt(0).toUpperCase()}</Text></View><View style={s.userInfo}><Text style={s.userName}>{u.display_name}</Text><Text style={s.metaText}>{u.email}</Text></View></View>)}
+      </View>}
+
+      {tab==='reports'&&<View style={s.sectionCard}><SectionHeading title="Library overview" subtitle="A quick summary of the collection and circulation."/>
+        <View style={s.metricsGrid}>{Object.entries({'Titles':summary?.totalTitles,'Physical copies':summary?.copies,'eBook licenses':summary?.ebookLicenses,'Active loans':summary?.activeLoans,'Returned':summary?.returnedLoans,'Overdue':summary?.overdueLoans}).map(([k,v],i)=><View key={k} style={[s.metricCard,{width:columns===3?'31.5%':'48.5%'}]}><Text style={[s.metricValue,i===5&&Number(v)>0?s.metricDanger:null]}>{v==null?'—':String(v)}</Text><Text style={s.metricLabel}>{k}</Text></View>)}</View>
+      </View>}
+
+      {tab==='admin'&&<View style={s.sectionCard}><SectionHeading title="Administration" subtitle="Your administrator overview."/><Text style={s.bodyText}>Account management, inventory editing, security details, and backups are available in the full web workspace.</Text><View style={s.adminInfo}><Text style={s.adminInfoTitle}>Signed in as</Text><Text style={s.bodyText}>{profile.display_name} · {profile.email}</Text><StatusBadge label="Administrator"/></View></View>}
+
+      <View style={s.footer}><Text style={s.footerText}>Library Management System</Text><Pressable style={s.refresh} onPress={search} accessibilityRole="button"><Text style={s.refreshText}>{busy?'Refreshing…':'Refresh'}</Text></Pressable></View>
+      <Pressable style={s.logoutButton} onPress={logout} accessibilityRole="button"><Text style={s.logoutText}>Log out</Text></Pressable>
+    </View>
+  </ScrollView>;
 }
 
-function Button({label,onPress,disabled=false}:{label:string;onPress:()=>void;disabled?:boolean}) { return <Pressable style={[s.button,disabled&&{opacity:.5}]} disabled={disabled} onPress={onPress}>{disabled?<ActivityIndicator color="#fff"/>:<Text style={s.buttonText}>{label}</Text>}</Pressable>; }
-const s=StyleSheet.create({scroll:{width:'100%',flex:1,alignSelf:'stretch'},page:{width:'100%',flexGrow:1,alignItems:'center',paddingHorizontal:16,paddingVertical:24,backgroundColor:C.bg},card:{width:'100%',maxWidth:700,alignSelf:'center',padding:20,borderRadius:24,backgroundColor:C.bg,elevation:4},brand:{fontSize:26,fontWeight:'800',color:C.dark,marginBottom:4,flexShrink:1},muted:{fontSize:13,color:C.muted,marginBottom:12,flexShrink:1},input:{width:'100%',backgroundColor:C.bg,borderRadius:13,padding:14,marginVertical:8,color:C.dark,elevation:2},button:{backgroundColor:C.blue,padding:14,borderRadius:13,alignItems:'center',marginVertical:8,minHeight:48,justifyContent:'center',width:'100%'},buttonText:{color:'#fff',fontWeight:'700'},error:{color:C.red,marginVertical:10,flexShrink:1},success:{color:'#16713a',marginVertical:10,flexShrink:1},link:{color:C.blue,fontWeight:'700',padding:12},enroll:{alignItems:'center',padding:14,backgroundColor:'#f4f7fa',borderRadius:16,marginVertical:12,width:'100%'},qr:{width:170,height:170,margin:10},codeText:{fontFamily:'monospace',color:C.dark,marginVertical:3,flexShrink:1},header:{flexDirection:'row',alignItems:'center',marginBottom:12},profile:{flex:1,minWidth:0},logoutButton:{alignSelf:'stretch',alignItems:'center',justifyContent:'center',minHeight:48,padding:12,marginTop:12,borderRadius:13,borderWidth:1,borderColor:'#d6a4a4',backgroundColor:'#fff5f5'},logoutText:{color:C.red,fontWeight:'700',fontSize:15},tabs:{flexDirection:'row',flexWrap:'wrap',gap:8,marginBottom:15,width:'100%'},tab:{paddingVertical:10,paddingHorizontal:13,borderRadius:12,backgroundColor:C.bg,elevation:2},selected:{backgroundColor:C.blue},tabText:{color:C.dark,fontWeight:'600'},selectedText:{color:'#fff'},item:{padding:15,borderRadius:15,backgroundColor:'#f0f3f7',marginVertical:7,width:'100%'},itemTitle:{color:C.dark,fontWeight:'700',fontSize:16,marginBottom:3,flexShrink:1},available:{color:'#16713a',fontWeight:'700',fontSize:13,marginTop:5,flexShrink:1},overdue:{color:C.red,fontWeight:'700',fontSize:13,marginTop:5,flexShrink:1},section:{fontSize:18,fontWeight:'700',color:C.dark,marginTop:18,flexShrink:1}});
+function BrandMark({large=false}:{large?:boolean}) { return <View style={[s.brandMark,large&&s.brandMarkLarge]}><View style={s.bookLeft}/><View style={s.bookRight}/><View style={s.bookSpine}/></View>; }
+function SectionHeading({title,subtitle}:{title:string;subtitle:string}) { return <View style={s.sectionHead}><Text style={s.sectionTitleMain}>{title}</Text><Text style={s.sectionSubtitle}>{subtitle}</Text></View>; }
+function EmptyState({message}:{message:string}) { return <View style={s.empty}><Text style={s.bodyText}>{message}</Text></View>; }
+function StatusBadge({label,danger=false}:{label:string;danger?:boolean}) { return <View style={[s.statusBadge,danger&&s.statusBadgeDanger]}><Text style={[s.statusText,danger&&s.statusTextDanger]}>{label}</Text></View>; }
+function BookCard({book,index,columns}:{book:Book;index:number;columns:number}) {
+  const colors=COVER_COLORS[index%COVER_COLORS.length];
+  const isbn=book.isbn?.replace(/[^0-9Xx]/g,'');
+  const coverUrl=isbn?`https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg?default=false`:'';
+  const [coverFailed,setCoverFailed]=useState(!coverUrl);
+  return <View style={[s.bookCard,{width:columns===3?'31.5%':'48.5%'}]}>
+    <View style={[s.cover,{backgroundColor:colors[0]}]}>
+      {!coverFailed&&<Image source={{uri:coverUrl}} style={StyleSheet.absoluteFillObject} resizeMode="cover" onError={()=>setCoverFailed(true)}/>}
+      {coverFailed&&<><View style={[s.coverGlow,{backgroundColor:colors[1]}]}/><View style={[s.coverBand,{backgroundColor:colors[2]}]}/><View style={s.coverInset}><Text style={s.coverEyebrow}>THE LIBRARY COLLECTION</Text><Text numberOfLines={3} style={s.coverTitle}>{book.title}</Text><View style={s.coverRule}/><Text numberOfLines={1} style={s.coverAuthor}>{book.author}</Text></View></>}
+      <View style={s.coverSpine}/>
+    </View>
+    <View style={s.bookInfo}><Text style={s.categoryText} numberOfLines={1}>{book.category||'General collection'}</Text><Text style={s.bookTitle} numberOfLines={2}>{book.title}</Text><Text style={s.bookAuthor} numberOfLines={1}>{book.author}</Text>
+      <View style={s.formatRow}>{(book.formats||['physical']).map(f=><View key={f} style={[s.formatChip,f==='ebook'&&s.ebookChip]}><Text style={[s.formatText,f==='ebook'&&s.ebookText]}>{f==='ebook'?'eBook':'Physical'}</Text></View>)}</View>
+      <View style={s.stockRow}><View style={s.stockCell}><Text style={s.stockValue}>{book.availablePhysicalCopies??book.availableCopies}/{book.physicalCopies??book.totalCopies}</Text><Text style={s.stockLabel}>Physical</Text></View><View style={s.stockCell}><Text style={s.stockValue}>{book.availableEbookLicenses||0}/{book.ebookLicenses||0}</Text><Text style={s.stockLabel}>eBook licenses</Text></View></View>
+    </View>
+  </View>;
+}
+function Button({label,onPress,disabled=false}:{label:string;onPress:()=>void;disabled?:boolean}) { return <Pressable style={[s.button,disabled&&{opacity:.55}]} disabled={disabled} onPress={onPress}>{disabled?<ActivityIndicator color="#fff"/>:<Text style={s.buttonText}>{label}</Text>}</Pressable>; }
+
+const s=StyleSheet.create({
+  scroll:{flex:1,backgroundColor:C.bg},page:{flexGrow:1,alignItems:'center',paddingHorizontal:14,paddingTop:16,paddingBottom:32},shell:{width:'100%',maxWidth:1000,alignSelf:'center'},
+  loginCard:{width:'100%',alignSelf:'center',marginTop:24,padding:28,borderRadius:26,backgroundColor:C.card,alignItems:'stretch',elevation:5,shadowColor:'#536b80',shadowOffset:{width:0,height:9},shadowOpacity:.15,shadowRadius:18},brandMark:{width:42,height:42,borderRadius:14,backgroundColor:C.navy,justifyContent:'center',alignItems:'center',flexDirection:'row',overflow:'hidden',marginRight:12},brandMarkLarge:{width:68,height:68,borderRadius:22,alignSelf:'center',marginHorizontal:0,marginBottom:22},bookLeft:{width:10,height:17,borderTopLeftRadius:2,borderBottomLeftRadius:2,backgroundColor:'#fff8e8',transform:[{skewY:'-10deg'}]},bookRight:{width:10,height:17,borderTopRightRadius:2,borderBottomRightRadius:2,backgroundColor:'#e6c98e',transform:[{skewY:'10deg'}]},bookSpine:{position:'absolute',width:2,height:17,backgroundColor:C.navy},
+  loginEyebrow:{textAlign:'center',fontSize:11,fontWeight:'800',letterSpacing:1.6,color:C.blue,marginBottom:7},loginTitle:{textAlign:'center',fontSize:27,fontWeight:'800',color:C.dark},loginIntro:{textAlign:'center',fontSize:14,lineHeight:21,color:C.muted,marginTop:5,marginBottom:22},loginFoot:{textAlign:'center',fontSize:12,color:C.muted,marginTop:19},label:{fontSize:13,fontWeight:'700',color:C.dark,marginTop:9,marginBottom:3},
+  headerCard:{padding:18,borderRadius:22,backgroundColor:C.card,flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:8,elevation:4,shadowColor:'#536b80',shadowOffset:{width:0,height:6},shadowOpacity:.12,shadowRadius:14},brandRow:{flexDirection:'row',alignItems:'center',flex:1,minWidth:0},brandCopy:{flex:1,minWidth:0},headerTitle:{fontSize:19,fontWeight:'800',color:C.dark,flexShrink:1},headerWelcome:{fontSize:13,color:C.muted,marginTop:3,flexShrink:1},roleBadge:{paddingHorizontal:11,paddingVertical:7,borderRadius:20,backgroundColor:'#f0f3f7',borderWidth:1,borderColor:'#d5e0ea',maxWidth:120},roleBadgeText:{fontSize:10,fontWeight:'800',letterSpacing:.5,textTransform:'uppercase',color:C.blue},
+  navScroller:{marginVertical:12,flexGrow:0},nav:{gap:7,padding:3},navItem:{paddingVertical:10,paddingHorizontal:15,borderRadius:12,backgroundColor:'rgba(231,235,240,.86)',borderWidth:1,borderColor:'#dce4eb'},navItemActive:{backgroundColor:C.blue,borderColor:C.blue},navText:{fontSize:13,fontWeight:'700',color:'#526273'},navTextActive:{color:'#fff'},
+  sectionCard:{padding:18,borderRadius:22,backgroundColor:C.card,marginBottom:16,elevation:3,shadowColor:'#536b80',shadowOffset:{width:0,height:5},shadowOpacity:.1,shadowRadius:12},sectionHead:{marginBottom:13},sectionTitleMain:{fontSize:21,fontWeight:'800',color:C.dark},sectionSubtitle:{fontSize:13,lineHeight:19,color:C.muted,marginTop:4},sectionTitle:{fontSize:16,fontWeight:'800',color:C.dark,marginTop:16,marginBottom:7},searchRow:{flexDirection:'row',alignItems:'center',gap:8},input:{width:'100%',backgroundColor:'#f7f9fc',borderColor:'#dce4eb',borderWidth:1,borderRadius:13,paddingHorizontal:14,paddingVertical:13,marginVertical:7,color:C.dark,fontSize:14},searchInput:{flex:1,minWidth:0,marginVertical:0},searchButton:{minHeight:47,paddingHorizontal:16,borderRadius:13,backgroundColor:C.blue,alignItems:'center',justifyContent:'center'},searchButtonText:{fontSize:13,fontWeight:'800',color:'#fff'},countText:{fontSize:12,fontWeight:'700',color:C.muted,marginTop:13,marginBottom:3},bookGrid:{flexDirection:'row',flexWrap:'wrap',justifyContent:'space-between',rowGap:11,marginTop:7},
+  bookCard:{overflow:'hidden',borderRadius:16,backgroundColor:C.paper,borderWidth:1,borderColor:'#edf1f5',elevation:2,shadowColor:'#536b80',shadowOffset:{width:0,height:4},shadowOpacity:.1,shadowRadius:8},cover:{width:'100%',aspectRatio:.82,overflow:'hidden',justifyContent:'center'},coverGlow:{position:'absolute',width:155,height:155,borderRadius:80,top:-61,right:-49,opacity:.65},coverBand:{position:'absolute',width:'150%',height:85,bottom:-37,left:-22,transform:[{rotate:'-12deg'}],opacity:.55},coverInset:{paddingHorizontal:14,paddingVertical:16,flex:1,justifyContent:'space-between'},coverEyebrow:{fontSize:7,fontWeight:'800',letterSpacing:1.5,color:'rgba(255,255,255,.8)'},coverTitle:{marginTop:14,fontSize:19,lineHeight:23,fontWeight:'800',color:'#fff',fontFamily:'Georgia'},coverRule:{width:38,height:2,backgroundColor:'rgba(255,255,255,.72)',marginTop:5},coverAuthor:{fontSize:10,fontWeight:'600',color:'rgba(255,255,255,.9)',marginTop:'auto'},coverSpine:{position:'absolute',left:8,top:0,bottom:0,width:2,backgroundColor:'rgba(255,255,255,.22)'},bookInfo:{padding:10},categoryText:{fontSize:8,fontWeight:'800',letterSpacing:.8,textTransform:'uppercase',color:'#718092'},bookTitle:{fontSize:13,fontWeight:'800',lineHeight:18,color:'#263a4e',marginTop:4},bookAuthor:{fontSize:11,color:'#667789',marginTop:3},formatRow:{flexDirection:'row',flexWrap:'wrap',gap:4,marginTop:8},formatChip:{borderRadius:10,paddingHorizontal:7,paddingVertical:4,backgroundColor:'#e9f1f8'},ebookChip:{backgroundColor:'#edf5ee'},formatText:{fontSize:9,fontWeight:'700',color:'#385b79'},ebookText:{color:C.green},stockRow:{flexDirection:'row',borderTopWidth:1,borderColor:'#e2e8ee',marginTop:9,paddingTop:7},stockCell:{flex:1},stockValue:{fontSize:11,fontWeight:'800',color:'#29445f'},stockLabel:{fontSize:8,color:'#718092',marginTop:2},
+  loanCard:{padding:14,borderRadius:15,backgroundColor:'rgba(247,249,252,.85)',borderWidth:1,borderColor:'#edf1f5',marginVertical:6},loanHead:{flexDirection:'row',alignItems:'flex-start',justifyContent:'space-between',gap:8},loanTitle:{flex:1,fontSize:15,fontWeight:'800',lineHeight:21,color:C.dark},bodyText:{fontSize:13,lineHeight:19,color:'#657384',marginTop:4},metaText:{fontSize:11,lineHeight:17,color:'#7c8997',marginTop:5},statusBadge:{alignSelf:'flex-start',paddingHorizontal:9,paddingVertical:5,borderRadius:12,backgroundColor:'#eaf5ef'},statusBadgeDanger:{backgroundColor:'#fff0ef'},statusText:{fontSize:10,fontWeight:'800',color:C.green},statusTextDanger:{color:C.red},inlineLink:{alignSelf:'flex-start',marginTop:9},inlineLinkText:{fontSize:13,fontWeight:'800',color:C.blue},userRow:{flexDirection:'row',alignItems:'center',gap:10,paddingVertical:10,borderBottomWidth:1,borderColor:C.line},userAvatar:{width:38,height:38,borderRadius:19,backgroundColor:'#e4edf5',alignItems:'center',justifyContent:'center'},userInitial:{fontSize:15,fontWeight:'800',color:C.blue},userInfo:{flex:1},userName:{fontSize:13,fontWeight:'700',color:C.dark},metricsGrid:{flexDirection:'row',flexWrap:'wrap',justifyContent:'space-between',rowGap:10},metricCard:{minHeight:92,padding:14,borderRadius:16,backgroundColor:'rgba(247,249,252,.9)',borderWidth:1,borderColor:'#edf1f5',justifyContent:'center'},metricValue:{fontSize:24,fontWeight:'800',color:C.navy},metricDanger:{color:C.red},metricLabel:{fontSize:11,fontWeight:'600',color:C.muted,marginTop:3},adminInfo:{padding:14,marginTop:16,borderRadius:15,backgroundColor:'#f2f6fa'},adminInfoTitle:{fontSize:12,fontWeight:'800',color:C.dark},
+  empty:{padding:18,borderRadius:15,backgroundColor:'rgba(247,249,252,.85)',alignItems:'center',marginTop:8},emptyTitle:{fontSize:15,fontWeight:'800',color:C.dark},footer:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:4,paddingVertical:9},footerText:{fontSize:11,color:C.muted},refresh:{paddingHorizontal:12,paddingVertical:8,borderRadius:11,backgroundColor:'#f1f5f8'},refreshText:{fontSize:12,fontWeight:'700',color:C.blue},logoutButton:{alignSelf:'stretch',alignItems:'center',justifyContent:'center',minHeight:48,padding:12,marginTop:5,marginBottom:12,borderRadius:13,borderWidth:1,borderColor:'#efcaca',backgroundColor:'#fff5f5'},logoutText:{color:C.red,fontWeight:'800',fontSize:14},
+  button:{backgroundColor:C.blue,padding:14,borderRadius:13,alignItems:'center',marginTop:10,minHeight:48,justifyContent:'center',width:'100%'},buttonText:{color:'#fff',fontWeight:'800',fontSize:14},error:{color:C.red,backgroundColor:'#fff0ef',borderRadius:12,padding:12,marginVertical:8,fontSize:13,lineHeight:19,overflow:'hidden'},success:{color:C.green,backgroundColor:'#eaf5ef',borderRadius:12,padding:12,marginVertical:8,fontSize:13},link:{color:C.blue,fontWeight:'800',padding:12,textAlign:'center'},enroll:{alignItems:'center',padding:14,backgroundColor:'#f2f6fa',borderRadius:16,marginVertical:12,width:'100%'},qr:{width:170,height:170,margin:10},codeText:{fontFamily:'monospace',color:C.dark,marginVertical:3,flexShrink:1},
+});
 
