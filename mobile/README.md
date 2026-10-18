@@ -15,4 +15,12 @@ For local Android emulator development, the host may be reachable at `http://10.
 
 ## Build
 
-Install EAS CLI, configure the Expo project with your own Expo account, then use `eas build --platform android --profile preview` or `eas build --platform ios --profile preview`. Store submission requires the developer's signing accounts and current store review.
+The Android app icon uses `assets/icon.png` and `assets/adaptive-icon.png`. The Android preview profile creates an installable APK and includes the current app code, including the in-app update button.
+
+From PowerShell, run this from the `mobile` folder to install the locked dependencies and start the Android APK build in one go:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\build-android.ps1
+```
+
+The first build may ask you to sign in to Expo or confirm Android signing credentials. After EAS finishes, open the build page and download the APK to install it on your phone. Later JavaScript and asset changes can use the in-app update button, while changes to native configuration still need a new APK. Store submission requires the developer's signing accounts and current store review.

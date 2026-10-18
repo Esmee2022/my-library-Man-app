@@ -40,7 +40,7 @@ app.use(
         scriptSrc: ["'self'", "'unsafe-inline'"],
         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdnjs.cloudflare.com'],
         fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com'],
-        imgSrc: ["'self'", 'data:'],
+        imgSrc: ["'self'", 'data:', 'https://covers.openlibrary.org'],
         connectSrc: ["'self'", ...WEB_ORIGINS]
       }
     },
@@ -87,7 +87,7 @@ app.get('/api/health', async (req, res) => {
       client.from(table).select('*', { head: true }).limit(0)
     ));
     const { data: routines, error: routineError } = await client.rpc('lms_schema_health');
-    const routinesReady = routines && ['issue','return','snapshot','restore'].every(key => routines[key] === true);
+    const routinesReady = routines && ['issue','return','snapshot','restore','studentSelfCheckout'].every(key => routines[key] === true);
     let authReady = true;
     if (AUTH_STORE_NAME === 'supabase-postgres') {
       const { data, error } = await client.rpc('auth_schema_health');

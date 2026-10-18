@@ -25,6 +25,13 @@ function db() {
   return getClient();
 }
 
+function isSecureReaderUrl(value) {
+  try {
+    const url = new URL(String(value || ''));
+    return url.protocol === 'https:' && !url.username && !url.password;
+  } catch { return false; }
+}
+
 function legacyRoleToLibrary(role) {
   if (role === 'administrator') return 'administrator';
   if (role === 'manager') return 'manager';
@@ -106,6 +113,70 @@ router.get('/library/catalog', requireAuth, requireLibraryRole(ROLES), async (re
   } catch (e) { fail(res, e); }
 });
 
+// Book details are public only to signed-in library readers. An eBook's actual
+// reading URL is returned only when this reader holds an active license loan.
+router.get('/library/books/:id', requireAuth, requireLibraryRole(ROLES), async (req, res) => {
+  try {
+    const client = db();
+    const { data: book, error } = await client.from('books')
+      .select('id,isbn,title,author,category,category_id,category_detail:book_categories(name),publisher,publication_year,description,archived,book_copies(id,barcode,status,format,created_at)')
+      .eq('id', req.params.id).eq('archived', false).maybeSingle();
+    if (error) throw error;
+    if (!book) return res.status(404).json({ error: 'This book is no longer in the catalogue.' });
+
+    const copies = book.book_copies || [];
+    const copyIds = copies.map(copy => copy.id);
+    let myActiveLoans = [];
+    if (copyIds.length) {
+      const { data: loans, error: loanError } = await client.from('loans')
+        .select('id,borrowed_at,due_at,copy:book_copies(id,format,digital_url)')
+        .eq('borrower_id', req.libraryActor.id).is('returned_at', null).in('copy_id', copyIds);
+      if (loanError) throw loanError;
+      myActiveLoans = (loans || []).map(loan => ({
+        id: loan.id,
+        borrowedAt: loan.borrowed_at,
+        dueAt: loan.due_at,
+        format: loan.copy?.format,
+        ebookUrl: loan.copy?.format === 'ebook' && /^https:\/\//i.test(loan.copy?.digital_url || '') ? loan.copy.digital_url : null
+      }));
+    }
+    const physical = copies.filter(copy => copy.format === 'physical');
+    const ebooks = copies.filter(copy => copy.format === 'ebook');
+    res.set('Cache-Control', 'no-store');
+    res.json({
+      book: { ...book, category: book.category_detail?.name || book.category, category_detail: undefined, book_copies: undefined,
+        copies: copies.map(({id,barcode,status,format}) => ({id,barcode,status,format})),
+        physicalCopies: physical.length, availablePhysicalCopies: physical.filter(copy => copy.status === 'available').length,
+        ebookLicenses: ebooks.length, availableEbookLicenses: ebooks.filter(copy => copy.status === 'available').length,
+        formats: [...new Set(copies.map(copy => copy.format || 'physical'))] },
+      myActiveLoans
+    });
+  } catch (e) { fail(res, e); }
+});
+
+// Student self-checkout. The database routine locks the selected copy and
+// enforces availability and the five-open-loan limit atomically.
+router.post('/library/books/:id/borrow', requireAuth, requireLibraryRole(ROLES), async (req, res) => {
+  try {
+    if (req.libraryActor.role !== 'student') return res.status(403).json({ error: 'Student accounts can borrow from the catalogue. Staff should use Circulation.' });
+    const format = String(req.body?.format || '');
+    if (!['physical','ebook'].includes(format)) return res.status(400).json({ error: 'Choose a physical copy or an eBook license.' });
+    const client = db();
+    const { data: copy, error } = await client.from('book_copies').select('id')
+      .eq('book_id', req.params.id).eq('format', format).eq('status', 'available')
+      .order('created_at', { ascending: true }).limit(1).maybeSingle();
+    if (error) throw error;
+    if (!copy) return res.status(409).json({ error: `No ${format === 'ebook' ? 'eBook licenses' : 'physical copies'} are available right now.` });
+    const dueAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: loanId, error: issueError } = await client.rpc('issue_book_copy', {
+      p_copy: copy.id, p_borrower: req.libraryActor.id, p_actor: req.libraryActor.id, p_due_at: dueAt
+    });
+    if (issueError) throw issueError;
+    await logAudit({ userId: req.user.id, action: 'LOAN_SELF_CHECKOUT', ip: req.ip, userAgent: req.get('user-agent'), status: 'SUCCESS', details: `Loan ${loanId}` });
+    res.status(201).json({ loanId, dueAt, format });
+  } catch (e) { fail(res, e); }
+});
+
 router.post('/library/books', requireAuth, requireLibraryRole(MANAGEMENT), async (req, res) => {
   try {
     const { title, author, isbn = null, category = null, publisher = null, publicationYear = null, description = null } = req.body || {};
@@ -116,7 +187,7 @@ router.post('/library/books', requireAuth, requireLibraryRole(MANAGEMENT), async
     if (String(title).trim().length > 240 || String(author).trim().length > 180 || String(isbn || '').trim().length > 32 || String(category || '').length > 100 || String(publisher || '').length > 180 || String(description || '').length > 5000) return res.status(400).json({ error: 'One or more book fields exceed the allowed length.' });
     if (publicationYear !== null && publicationYear !== '' && (!Number.isInteger(Number(publicationYear)) || Number(publicationYear) < 0 || Number(publicationYear) > 2200)) return res.status(400).json({ error: 'Publication year must be a whole number from 0 to 2200.' });
     if (!Number.isInteger(physicalCopies) || physicalCopies < 0 || physicalCopies > 500 || !Number.isInteger(ebookLicenses) || ebookLicenses < 0 || ebookLicenses > 500 || physicalCopies + ebookLicenses < 1) return res.status(400).json({ error: 'Add at least one physical copy or eBook license; each quantity must be between 0 and 500.' });
-    if (ebookLicenses && (!/^https?:\/\//i.test(ebookUrl) || ebookUrl.length > 2000)) return res.status(400).json({ error: 'Provide a valid web link for eBook licenses.' });
+    if (ebookLicenses && (!isSecureReaderUrl(ebookUrl) || ebookUrl.length > 2000)) return res.status(400).json({ error: 'Provide a valid HTTPS reading link for eBook licenses.' });
     const client = db();
     let categoryId = null;
     if (category) {
@@ -178,7 +249,7 @@ router.post('/library/copies', requireAuth, requireLibraryRole(MANAGEMENT), asyn
     const digitalUrl = String(req.body?.digitalUrl || '').trim();
     if (!bookId || !Number.isInteger(count) || count < 1 || count > 500) return res.status(400).json({ error: 'A book and copy count from 1 to 500 are required.' });
     if (!['physical','ebook'].includes(format)) return res.status(400).json({ error: 'Format must be physical or ebook.' });
-    if (format === 'ebook' && (!/^https?:\/\//i.test(digitalUrl) || digitalUrl.length > 2000)) return res.status(400).json({ error: 'Provide a valid web link for the eBook.' });
+    if (format === 'ebook' && (!isSecureReaderUrl(digitalUrl) || digitalUrl.length > 2000)) return res.status(400).json({ error: 'Provide a valid HTTPS reading link for the eBook.' });
     const client = db();
     const copies = Array.from({ length: count }, () => ({ book_id: bookId, barcode: `LIB-${bookId.slice(0, 8).toUpperCase()}-${crypto.randomBytes(5).toString('hex').toUpperCase()}`, format, digital_url: format === 'ebook' ? digitalUrl : null }));
     const { data, error } = await client.from('book_copies').insert(copies).select();

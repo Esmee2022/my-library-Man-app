@@ -11,7 +11,7 @@ The web UI is served by `server/server.js`. The login request keeps the existing
 1. Install Node.js 20.19 or newer.
 2. Copy `server/.env.example` to `server/.env` and replace every placeholder with independently generated secrets. Do not use example values as secrets.
 3. Provide `ADMIN_EMAIL` and a unique `ADMIN_PASSWORD` in `server/.env` before first-time setup.
-4. For a new Supabase project, apply migrations `001_library.sql`, `002_auth_cloud.sql`, and `003_cloud_auth_atomic.sql` in order in its SQL Editor. The configured project has all three installed.
+4. For a new Supabase project, apply migrations `001_library.sql` through `005_reader_self_checkout.sql` in order in its SQL Editor. On an existing project, apply any missing migrations in order; the catalogue requires `004_library_catalog.sql`, and student catalogue borrowing requires `005_reader_self_checkout.sql`. Apply SQL before deploying the matching API code.
 5. From this directory, run `npm install --prefix server`, then `npm run seed` once, then `npm start`.
 6. Open `https://localhost:3000` and accept the local development certificate warning.
 
@@ -24,7 +24,7 @@ The seed script does not print the administrator password. To run the configured
 - Public account registration is rejected.
 - The password hashing service fails closed if Argon2id is unavailable. The prior weaker, incorrect fallback was removed.
 
-Cloud library roles are `student`, `librarian`, `manager`, and `administrator`; they are checked on every library API route. Existing legacy SQLite accounts are mapped to a least-privilege default profile on first library use, and administrators can assign the intended role. The issue procedure applies a five-open-loan limit and a maximum 30-day loan period; the web form defaults to 14 days.
+Cloud library roles are `student`, `librarian`, `manager`, and `administrator`; they are checked on every library API route. Existing legacy SQLite accounts are mapped to a least-privilege default profile on first library use, and administrators can assign the intended role. The issue procedure enforces a five-open-loan limit. Staff may issue loans for up to 30 days; student catalogue self-checkout is limited to 14 days.
 
 ## Configuration
 
@@ -40,4 +40,4 @@ Run `npm test` or `npm run test:all` from this directory. These checks use tempo
 
 ## Known work remaining
 
-Remaining work before production: validate backup restore in a separate Supabase test project; configure production HTTPS/CORS/secrets and deploy; then install mobile dependencies and build/verify Expo on Android and iOS. Book reservations and reminders are not implemented. User provisioning updates authentication and library profile stores separately, so it is not a single cross-database transaction.
+The catalogue offers student self-checkout for available physical copies and eBook licenses. Physical loans are recorded immediately and readers collect the book at the circulation desk. eBook access uses an HTTPS reading-provider URL entered by an administrator; only a reader with that title's active eBook loan receives the link. Use only reading links the library is authorized to provide. Reservation queues, reminders, and hosted eBook file storage are not included. User provisioning updates authentication and library profile stores separately, so it is not a single cross-database transaction.

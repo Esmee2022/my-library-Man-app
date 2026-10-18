@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eaf0f5">
+  <title>Book details · Library Workspace</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="library.css">
+  <link rel="stylesheet" href="library-visuals.css">
+  <link rel="stylesheet" href="book-detail.css">
+</head>
+<body class="library-page">
+  <main class="library-shell book-detail-shell">
+    <header class="library-card topbar book-detail-topbar">
+      <div><p class="book-detail-eyebrow">LIBRARY WORKSPACE</p><h1>Book details</h1><p class="subtitle" id="readerWelcome">Your library catalogue</p></div>
+      <div class="top-actions"><a class="library-button subtle" href="library.html">Back to catalogue</a><button class="library-button danger" id="logoutButton" type="button">Log out</button></div>
+    </header>
+    <div id="notice" class="notice" role="status" hidden></div>
+    <article id="bookDetails" class="library-card book-detail-card" aria-live="polite"><p>Loading book details…</p></article>
+    <footer class="workspace-footer"><span>Library Management System</span><a href="library.html">Catalogue</a></footer>
+  </main>
+  <script src="book-detail.js" defer></script>
+</body>
+</html>
