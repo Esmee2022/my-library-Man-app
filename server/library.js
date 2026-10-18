@@ -8,6 +8,7 @@ const { logAudit, listUsers } = require('./database');
 const { updateUserStatus, deleteUserSessions } = require('./database');
 const { getUserById, updateUserRole } = require('./database');
 const { encryptSecret, decryptSecret } = require('./crypto');
+const awsBackup = require('./awsBackup');
 const crypto = require('crypto');
 
 const router = express.Router();
@@ -432,6 +433,8 @@ router.post('/library/backups', requireAuth, requireLibraryRole(MANAGEMENT), asy
     const payload = Buffer.from(encrypted,'utf8');
     const id = crypto.randomUUID();
     path = `${id}.enc`;
+    // Mirror the encrypted snapshot to the private AWS backup bucket.
+    await awsBackup.putEncryptedBackup(path, payload);
     const { error: uploadError } = await client.storage.from(BACKUP_BUCKET).upload(path,payload,{contentType:'application/octet-stream',upsert:false});
     if (uploadError) throw uploadError;
     const counts = {users:snapshot.users.length,books:snapshot.books.length,copies:snapshot.copies.length,loans:snapshot.loans.length,auditEvents:snapshot.auditEvents.length};
