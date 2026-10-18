@@ -6,6 +6,8 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "runtimeVersion": { "policy": "fingerprint" },
+    "updates": { "url": "https://u.expo.dev/9638ea5c-8bf4-42e8-a034-2d66b016df85" },
     "icon": "./assets/icon.png",
     "newArchEnabled": true,
     "plugins": [
