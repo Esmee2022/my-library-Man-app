@@ -5,7 +5,7 @@ let cachedUsers = [];
 let libraryCategories = [];
 
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const coverPalettes = [['#19365d','#254f7d','#3972a8']];
+const coverPalettes = [['#19365d','#19365d','#19365d']];
 function bookCover(book, index) {
   const title = String(book.title || 'Library selection');
   const words = title.split(/\s+/);

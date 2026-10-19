@@ -11,7 +11,7 @@ type Book = { id: string; title: string; author: string; isbn?: string; category
 type Loan = { id: string; borrowed_at: string; due_at: string; returned_at?: string; copy?: { barcode: string; format?: string; digital_url?: string; book?: { title: string } }; borrower?: { display_name: string } };
 type Auth = { token: string; csrf: string; user: { email: string; name?: string; role: string } };
 const C = { blue: '#087cff', dark: '#303943', muted: '#7c858e', bg: '#eaf0f5', card: 'rgba(231,235,240,0.96)', paper: '#f7f9fc', red: '#b42318', green: '#23734b', navy: '#19365d', line: '#d7e0e8' };
-const COVER_COLORS = [['#19365d','#254f7d','#3972a8']];
+const COVER_COLORS = [['#19365d','#19365d','#19365d']];
 
 async function readAuth(): Promise<Auth | null> { try { const s = await SecureStore.getItemAsync('library-auth'); return s ? JSON.parse(s) : null; } catch { return null; } }
 async function request(path: string, auth: Auth | null, init: RequestInit = {}) {

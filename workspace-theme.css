@@ -115,6 +115,8 @@ td:first-child, td:last-child { border-radius: 0; }
 .dashboard-container .logout-btn:hover { background: var(--workspace-blue); color: white; }
 .dashboard-container #logoutBtn, .dashboard-page #mobileLogoutBtn { background: #f97316 !important; color: #fff !important; border: 0; }
 .dashboard-container #logoutBtn:hover, .dashboard-page #mobileLogoutBtn:hover { background: #ea580c !important; color: #fff !important; }
+body.library-page #logoutButton { background: #f97316 !important; color: #fff !important; border: 0; }
+body.library-page #logoutButton:hover { background: #ea580c !important; color: #fff !important; }
 .dashboard-container .action-btn-del:hover { background: var(--workspace-blue); color: white !important; }
 .dashboard-container .danger-action, .dashboard-container .action-btn-del.danger-action { color: #b42318 !important; background: #fff0f0 !important; }
 .dashboard-container table { min-width: 720px; }
