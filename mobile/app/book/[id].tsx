@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { readAuth, request, type Auth } from '../../lib/api';
 
 type Book = {
@@ -13,11 +14,12 @@ type ReaderProfile = { role: string; display_name: string; email: string };
 const COLORS = ['#173f5f','#20639b','#3caea3'];
 const C = {blue:'#263cff',navy:'#171923',dark:'#171923',muted:'#777987',bg:'#f2f3f8',card:'#fff',line:'#e7e8ef',green:'#23734b',red:'#b42318'};
 
-function WorkspaceText(props: import('react-native').TextProps) { const resolved=StyleSheet.flatten(props.style)||{}; const weight=Number(resolved.fontWeight)||400; const family=weight>=650?'CreatoDisplayBold':weight>=500?'CreatoDisplayMedium':'CreatoDisplay'; return <Text {...props} style={[props.style,{fontFamily:family,fontWeight:'normal',fontSize:Math.max(14,resolved.fontSize||16)}]}/>; }
+function WorkspaceText(props: import('react-native').TextProps) { const resolved=StyleSheet.flatten(props.style)||{}; const weight=Number(resolved.fontWeight)||400; const family=weight>=650?'CreatoDisplayBold':weight>=500?'CreatoDisplayMedium':'CreatoDisplay'; return <Text {...props} style={[props.style,{fontFamily:family,fontWeight:'normal',fontSize:Math.max(14,(resolved.fontSize||16)+2)}]}/>; }
 
 export default function BookDetails() {
   const { id } = useLocalSearchParams<{id:string}>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [auth,setAuth] = useState<Auth|null>(null);
   const [profile,setProfile] = useState<ReaderProfile|null>(null);
   const [book,setBook] = useState<Book|null>(null);
@@ -82,7 +84,7 @@ export default function BookDetails() {
   if(loading)return <View style={s.center}><ActivityIndicator size="large" color={C.blue}/><WorkspaceText style={s.loadingText}>Loading book details…</WorkspaceText></View>;
   if(!book)return <View style={s.center}><WorkspaceText style={s.errorTitle}>Book unavailable</WorkspaceText><WorkspaceText style={s.copy}>{error||'This title is no longer in the catalogue.'}</WorkspaceText><Pressable style={s.backButton} onPress={()=>router.back()}><WorkspaceText style={s.backButtonText}>Back to catalogue</WorkspaceText></Pressable></View>;
 
-  return <ScrollView style={s.screen} contentContainerStyle={s.page} showsVerticalScrollIndicator={false}>
+  return <ScrollView style={s.screen} contentContainerStyle={[s.page,{paddingTop:insets.top+12,paddingBottom:insets.bottom+36}]} showsVerticalScrollIndicator={false}>
     <View style={s.shell}>
       <Pressable style={s.backLink} onPress={()=>router.back()} accessibilityRole="button"><WorkspaceText style={s.backLinkText}>‹  Catalogue</WorkspaceText></Pressable>
       <View style={s.card}>

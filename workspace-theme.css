@@ -206,4 +206,38 @@ body.library-page .workspace-footer { font-size: 14px; }
   body.library-page .top-actions .library-button { font-size: 14px; }
   body.library-page .book-card-content h3 { font-size: 16px; }
 }
+/* Increase the primary reading hierarchy another step for better scanability. */
+body.library-page, body.dashboard-page { font-size: 18px; }
+body.library-page .topbar h1 { font-size: 27px; }
+body.library-page .book-cover-copy h2 { font-family: "Creato Display", sans-serif !important; }
+body.library-page .view h2, body.dashboard-page .section-title { font-size: 27px; }
+body.library-page .view h3, body.dashboard-page .dashboard-container h3 { font-size: 21px; }
+body.library-page .view p, body.dashboard-page .dashboard-container p { font-size: 18px; }
+body.library-page .library-nav button, body.dashboard-page .dashboard-side-link { font-size: 17px; }
+body.library-page .library-button, body.library-page .book-action, body.library-page .row-action,
+body.library-page .search-form input, body.library-page .inset-panel input, body.library-page .inset-panel select,
+body.library-page .catalog-filters select, body.library-page .backup-actions select, body.library-page .restore-controls select,
+body.dashboard-page .dashboard-container button, body.dashboard-page .dashboard-container input,
+body.dashboard-page .dashboard-container select, body.dashboard-page .dashboard-container textarea { font-size: 17px; }
+body.library-page .book-card-content h3 { font-size: 19px; }
+body.library-page .book-detail-title { font-size: clamp(28px, 4vw, 42px); }
+body.library-page .book-detail-author { font-size: 20px; }
+body.library-page .book-detail-description { font-size: 18px; }
+body.dashboard-page .dashboard-brand { font-size: 22px; }
+body.dashboard-page .dashboard-container > .dash-card:first-child #userName { font-size: 28px !important; }
+body.dashboard-page .dashboard-container > .dash-card:first-child #userEmail { font-size: 16px !important; }
+
+@media (max-width: 760px) {
+  body.library-page .topbar h1 { font-size: 26px; }
+  body.library-page .library-nav button, body.dashboard-page .dashboard-side-link { font-size: 16px; }
+  body.library-page .view p, body.dashboard-page .dashboard-container p { font-size: 17px; }
+  body.dashboard-page .dashboard-brand { font-size: 17px; }
+  body.dashboard-page .dashboard-container > .dash-card:first-child #userName { font-size: 24px !important; }
+}
+@media (max-width: 420px) {
+  body.library-page .library-nav button, body.dashboard-page .dashboard-side-link { font-size: 15px; }
+  body.library-page .topbar h1 { font-size: 24px; }
+  body.library-page .top-actions .library-button { font-size: 16px; }
+  body.library-page .book-card-content h3 { font-size: 18px; }
+}
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
