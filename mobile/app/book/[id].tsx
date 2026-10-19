@@ -11,7 +11,7 @@ type Book = {
 };
 type ActiveLoan = { id: string; format: string; dueAt: string; ebookUrl?: string | null };
 type ReaderProfile = { role: string; display_name: string; email: string };
-const COLORS = ['#173f5f','#20639b','#3caea3'];
+const COLORS = ['#19365d','#254f7d','#3972a8'];
 const C = {blue:'#263cff',navy:'#171923',dark:'#171923',muted:'#777987',bg:'#f2f3f8',card:'#fff',line:'#e7e8ef',green:'#23734b',red:'#b42318'};
 
 function WorkspaceText(props: import('react-native').TextProps) { const resolved=StyleSheet.flatten(props.style)||{}; const weight=Number(resolved.fontWeight)||400; const family=weight>=650?'CreatoDisplayBold':weight>=500?'CreatoDisplayMedium':'CreatoDisplay'; return <Text {...props} style={[props.style,{fontFamily:family,fontWeight:'normal',fontSize:Math.max(14,(resolved.fontSize||16)+2)}]}/>; }
