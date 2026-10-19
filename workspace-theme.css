@@ -10,10 +10,19 @@
   --workspace-shadow: 0 12px 32px rgba(27, 31, 54, .08);
 }
 
+@font-face { font-family: "Creato Display"; src: url("/fonts/CreatoDisplay-Regular.otf") format("opentype"); font-style: normal; font-weight: 400; font-display: swap; }
+@font-face { font-family: "Creato Display"; src: url("/fonts/CreatoDisplay-Medium.otf") format("opentype"); font-style: normal; font-weight: 500; font-display: swap; }
+@font-face { font-family: "Creato Display"; src: url("/fonts/CreatoDisplay-Medium.otf") format("opentype"); font-style: normal; font-weight: 600; font-display: swap; }
+@font-face { font-family: "Creato Display"; src: url("/fonts/CreatoDisplay-Bold.otf") format("opentype"); font-style: normal; font-weight: 700; font-display: swap; }
+@font-face { font-family: "Creato Display"; src: url("/fonts/CreatoDisplay-Bold.otf") format("opentype"); font-style: normal; font-weight: 800; font-display: swap; }
+@font-face { font-family: "Creato Display"; src: url("/fonts/CreatoDisplay-Bold.otf") format("opentype"); font-style: normal; font-weight: 900; font-display: swap; }
+
 body.library-page, body.dashboard-page {
   background: var(--workspace-canvas) !important;
   color: var(--workspace-ink);
-  font-family: Inter, Poppins, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Creato Display", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
 }
 .book-backdrop { background: var(--workspace-canvas) !important; opacity: .16; }
 .book-backdrop::before { animation: none; }
@@ -148,5 +157,53 @@ td:first-child, td:last-child { border-radius: 0; }
   .top-actions { gap: 7px; }
   .top-actions .library-button { padding-inline: 10px; font-size: 12px; }
   .view { padding: 16px; }
+}
+
+/* Readable, consistent typography across authenticated library workspaces. */
+body.library-page, body.dashboard-page,
+body.library-page button, body.library-page input, body.library-page select, body.library-page textarea,
+body.dashboard-page button, body.dashboard-page input, body.dashboard-page select, body.dashboard-page textarea {
+  font-family: "Creato Display", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+body.library-page .library-nav button, body.dashboard-page .dashboard-side-link { font-size: 15px; }
+body.library-page .role-badge, body.dashboard-page .dashboard-sidebar-foot { font-size: 12px; }
+body.library-page .view h2, body.dashboard-page .section-title { font-size: 25px; }
+body.library-page .view h3, body.dashboard-page .dashboard-container h3 { font-size: 19px; }
+body.library-page .view p, body.dashboard-page .dashboard-container p { font-size: 16px; line-height: 1.6; }
+body.library-page .library-button, body.library-page .book-action, body.library-page .row-action,
+body.library-page .search-form input, body.library-page .inset-panel input, body.library-page .inset-panel select,
+body.library-page .catalog-filters select, body.library-page .backup-actions select, body.library-page .restore-controls select,
+body.dashboard-page .dashboard-container button, body.dashboard-page .dashboard-container input,
+body.dashboard-page .dashboard-container select, body.dashboard-page .dashboard-container textarea { font-size: 15px; }
+body.library-page th, body.dashboard-page th { font-size: 13px; }
+body.library-page td, body.dashboard-page td { font-size: 14px; line-height: 1.5; }
+body.library-page .book-card-content h3 { font-size: 17px; line-height: 1.35; }
+body.library-page .book-author { font-size: 14px !important; }
+body.library-page .book-category { font-size: 12px !important; }
+body.library-page .book-stock { font-size: 13px; }
+body.library-page .book-stock strong { font-size: 15px; }
+body.library-page .book-details-hint, body.library-page .book-back-link { font-size: 14px; }
+body.library-page .book-detail-eyebrow, body.library-page .book-cover-label,
+body.library-page .book-detail-category, body.library-page .book-meta-label { font-size: 13px; }
+body.library-page .book-detail-author { font-size: 18px; }
+body.library-page .book-detail-description { font-size: 16px; line-height: 1.7; }
+body.library-page .book-meta-value, body.library-page .book-stock-line,
+body.library-page .book-loan-note, body.library-page .book-detail-note { font-size: 14px; }
+body.dashboard-page .dashboard-clock, body.dashboard-page .security-row code,
+body.dashboard-page .dashboard-container td[style*="font-size"] { font-size: 14px !important; }
+body.dashboard-page .stat-item { font-size: 15px; }
+body.library-page .workspace-footer { font-size: 14px; }
+
+@media (max-width: 760px) {
+  body.library-page, body.dashboard-page { font-size: 16px; }
+  body.library-page .library-nav button, body.dashboard-page .dashboard-side-link { font-size: 14px; }
+  body.library-page .view { padding: 20px; }
+  body.library-page th, body.dashboard-page th { font-size: 12px; }
+  body.library-page td, body.dashboard-page td { font-size: 14px; }
+}
+@media (max-width: 420px) {
+  body.library-page .library-nav button, body.dashboard-page .dashboard-side-link { font-size: 13px; }
+  body.library-page .top-actions .library-button { font-size: 14px; }
+  body.library-page .book-card-content h3 { font-size: 16px; }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
