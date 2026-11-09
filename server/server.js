@@ -18,6 +18,22 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
+// Vercel Functions are imported rather than started with startServer(). Fail
+// during invocation if production would otherwise fall back to ephemeral SQLite.
+if (process.env.VERCEL && process.env.NODE_ENV === 'production') {
+  const pepper = process.env.PASSWORD_PEPPER || process.env.PEPPER || '';
+  const sessionSecret = process.env.SESSION_SECRET || '';
+  const encryptionKey = process.env.ENCRYPTION_KEY || '';
+  const configured = process.env.AUTH_STORE === 'supabase'
+    && pepper.length >= 32 && !pepper.startsWith('replace_')
+    && sessionSecret.length >= 32 && !sessionSecret.startsWith('replace_')
+    && /^[a-f0-9]{64}$/i.test(encryptionKey) && !encryptionKey.startsWith('replace_')
+    && process.env.SUPABASE_URL && process.env.SUPABASE_SECRET_KEY;
+  if (!configured) {
+    throw new Error('Vercel production requires Supabase auth and valid server secrets. Configure the production environment variables before deploying.');
+  }
+}
+
 const { getOrGenerateCertificate } = require('./certs/certManager');
 const authRoutes = require('./auth');
 const userRoutes = require('./users');
@@ -28,7 +44,14 @@ const { getClient: getSupabaseClient, isConfigured: isSupabaseConfigured } = req
 const app = express();
 const PORT = process.env.PORT || 3000;
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || `https://localhost:${PORT}`;
-const WEB_ORIGINS = new Set([FRONTEND_ORIGIN, ...(process.env.WEB_ORIGINS || '').split(',').map(v => v.trim()).filter(Boolean)]);
+const vercelOrigins = [process.env.VERCEL_URL, process.env.VERCEL_PROJECT_PRODUCTION_URL]
+  .filter(Boolean)
+  .map(host => `https://${host}`);
+const WEB_ORIGINS = new Set([
+  FRONTEND_ORIGIN,
+  ...vercelOrigins,
+  ...(process.env.WEB_ORIGINS || '').split(',').map(v => v.trim()).filter(Boolean),
+]);
 const AUTH_STORE_NAME = process.env.AUTH_STORE === 'supabase' ? 'supabase-postgres' : 'local-development-sqlite';
 
 // 1. Helmet Security Headers with custom Content Security Policy (CSP)
@@ -109,7 +132,9 @@ const candidates = [
   path.join(__dirname, '..'),
   path.join(__dirname, '..', '111-Login & Sign Up Form'),
 ];
-const frontendDir = candidates.find(d => fs.existsSync(path.join(d, 'index.html'))) || candidates[1];
+const frontendDir = process.env.VERCEL
+  ? path.join(__dirname, '..', 'public')
+  : candidates.find(d => fs.existsSync(path.join(d, 'index.html'))) || candidates[1];
 
 app.use(express.static(frontendDir));
 

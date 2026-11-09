@@ -1,11 +1,19 @@
 {
   "name": "login-and-signup-system",
   "version": "1.0.0",
+  "private": true,
   "description": "Library Management System with two-factor authentication and role-based access",
   "main": "server.js",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "workspaces": [
+    "server"
+  ],
   "scripts": {
     "start": "node server/server.js",
     "start:http": "node server/server.js --http",
+    "build:vercel": "node scripts/prepare-vercel.js",
     "seed": "node server/scripts/seed.js",
     "test": "node server/tests/test_flow.js",
     "test:auth-api": "node server/tests/test_auth_smoke.js",

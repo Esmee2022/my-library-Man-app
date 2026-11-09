@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build:vercel",
+  "functions": {
+    "server.js": {
+      "includeFiles": "server/openapi.json"
+    }
+  }
+}

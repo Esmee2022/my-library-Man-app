@@ -24,6 +24,8 @@ node_modules/
 .expo/
 dist/
 web-build/
+public/
+.vercel/
 
 # Logs and scratch
 npm-debug.log*
