@@ -6,7 +6,7 @@ The web server is Express, the production authentication and library database st
 
 1. Sign in to Vercel and choose **Add New → Project**.
 2. Import `Esmee2022/my-library-Man-app` from GitHub and select `main`.
-3. Keep the repository root as the Root Directory. Vercel should detect the Express entry point at `server.js`; the configured build command prepares the frontend under `public/`.
+3. Keep the repository root as the Root Directory and the **Express** Framework Preset. The configured build command prepares the frontend under `public/`; the root `server.js` exports the Express app. This is a single Express project, not a Vercel Services project.
 4. Add the environment variables below under **Project Settings → Environment Variables**. Add them to Production and Preview where appropriate, then deploy.
 5. After the first deployment, copy the assigned `*.vercel.app` URL. Set `FRONTEND_ORIGIN` to that URL and include the URL in `WEB_ORIGINS` (comma-separated if there are more trusted web origins). Redeploy after changing environment variables.
 6. Open `https://<your-vercel-domain>/api/health`. Continue only when it reports `"status":"ok"` and the expected Supabase stores are ready. Then confirm login, 2FA, catalogue, borrowing, admin workspace, and database backup from the Vercel URL.
