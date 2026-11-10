@@ -9,9 +9,11 @@
 
 const fs = require('fs');
 const path = require('path');
-const Database = require('better-sqlite3');
-const { getClient } = require('./supabase');
 const cloudAuth = process.env.AUTH_STORE === 'supabase';
+// Vercel production uses Supabase; load the native SQLite driver only for
+// local SQLite development so the serverless bundle doesn't require it.
+const Database = cloudAuth ? null : require('better-sqlite3');
+const { getClient } = require('./supabase');
 
 const DB_DIR = path.join(__dirname, 'database');
 const DB_PATH = process.env.AUTH_DB_PATH || path.join(DB_DIR, 'auth.db');

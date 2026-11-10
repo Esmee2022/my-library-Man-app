@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" fill="none">
+  <defs>
+    <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#19365d"/><stop offset="1" stop-color="#3977a7"/></linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1c706e"/><stop offset="1" stop-color="#74b69c"/></linearGradient>
+    <linearGradient id="plum" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#673f70"/><stop offset="1" stop-color="#b17d8d"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ae7044"/><stop offset="1" stop-color="#dfbd83"/></linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fffdf5"/><stop offset="1" stop-color="#d9e5eb"/></linearGradient>
+    <filter id="shadow" x="-.4" y="-.4" width="1.8" height="1.8"><feGaussianBlur stdDeviation="13"/></filter>
+  </defs>
+  <!-- Soft book shadows keep the center calm for dashboard content. -->
+  <ellipse cx="186" cy="248" rx="210" ry="72" fill="#304d70" opacity=".12" filter="url(#shadow)"/>
+  <ellipse cx="1403" cy="795" rx="245" ry="90" fill="#304d70" opacity=".13" filter="url(#shadow)"/>
+  <g opacity=".9" transform="rotate(-11 188 226)">
+    <rect x="32" y="98" width="76" height="260" rx="12" fill="url(#navy)"/>
+    <path d="M50 125h40M50 316h40" stroke="#e7c98f" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+    <rect x="118" y="72" width="83" height="286" rx="12" fill="url(#gold)"/>
+    <path d="M139 106h41M139 322h41" stroke="#fff2cf" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+    <rect x="211" y="117" width="74" height="241" rx="12" fill="url(#plum)"/>
+    <path d="M229 147h38M229 324h38" stroke="#efd6a1" stroke-width="5" stroke-linecap="round" opacity=".75"/>
+    <rect x="296" y="89" width="79" height="269" rx="12" fill="url(#teal)"/>
+    <path d="M315 122h40M315 324h40" stroke="#e8d7ab" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+    <path d="M50 172h40m-40 15h40m-40 15h31M139 161h41m-41 15h41m-41 15h30M229 192h38m-38 15h38m-38 15h28M315 174h40m-40 15h40m-40 15h30" stroke="#fff" stroke-width="3" opacity=".34"/>
+  </g>
+  <g opacity=".9" transform="rotate(10 1398 787)">
+    <rect x="1204" y="603" width="88" height="286" rx="14" fill="url(#plum)"/>
+    <path d="M1227 643h42M1227 850h42" stroke="#efd6a1" stroke-width="5" stroke-linecap="round"/>
+    <rect x="1301" y="573" width="91" height="316" rx="14" fill="url(#navy)"/>
+    <path d="M1324 615h44M1324 850h44" stroke="#e7c98f" stroke-width="5" stroke-linecap="round"/>
+    <rect x="1401" y="624" width="84" height="265" rx="14" fill="url(#gold)"/>
+    <path d="M1422 662h42M1422 850h42" stroke="#fff2cf" stroke-width="5" stroke-linecap="round"/>
+    <rect x="1494" y="594" width="83" height="295" rx="14" fill="url(#teal)"/>
+    <path d="M1514 635h42M1514 850h42" stroke="#e8d7ab" stroke-width="5" stroke-linecap="round"/>
+    <path d="M1227 690h42m-42 15h42m-42 15h31M1324 667h44m-44 15h44m-44 15h30M1422 707h42m-42 15h42m-42 15h30M1514 681h42m-42 15h42m-42 15h30" stroke="#fff" stroke-width="3" opacity=".34"/>
+  </g>
+  <!-- An open book illustration at the lower left -->
+  <g opacity=".58" transform="rotate(8 345 806)">
+    <path d="M82 757c104-46 190-32 267 28v135c-80-58-170-69-267-27V757Z" fill="url(#paper)" stroke="#65839b" stroke-width="5"/>
+    <path d="M349 785c81-60 169-74 270-28v136c-97-42-188-31-270 27V785Z" fill="url(#paper)" stroke="#65839b" stroke-width="5"/>
+    <path d="M349 786v134M118 786c72-23 136-20 194 14m-194 8c72-23 136-20 194 14m143-22c61-33 124-37 194-14m-194 50c61-33 124-37 194-14" stroke="#8da8b7" stroke-width="5" stroke-linecap="round" opacity=".55"/>
+  </g>
+</svg>
