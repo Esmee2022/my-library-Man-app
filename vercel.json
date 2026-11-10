@@ -4,10 +4,7 @@
   "buildCommand": "npm run build:vercel",
   "functions": {
     "server.js": {
-      "includeFiles": [
-        "server/openapi.json",
-        "public/**"
-      ]
+      "includeFiles": "{server/openapi.json,public/**}"
     }
   }
 }
