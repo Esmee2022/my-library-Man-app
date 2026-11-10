@@ -3,8 +3,7 @@
  */
 
 const express = require('express');
-const crypto = require('crypto');
-const { generateSecret, generateURI, verifySync } = require('otplib');
+const crypto = require('crypto');// otplib is ESM with ESM-only dependencies; load it dynamically in async handlers.
 const QRCode = require('qrcode');
 
 const {
@@ -55,9 +54,8 @@ setInterval(() => {
 }, 2 * 60 * 1000).unref();
 
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes lockout
-const MAX_FAILED_ATTEMPTS = 5;
-
-async function createEnrollment(user) {
+const MAX_FAILED_ATTEMPTS = 5;async function createEnrollment(user) {
+  const { generateSecret, generateURI } = await import('otplib');
   const tempToken = crypto.randomBytes(32).toString('hex');
   tempTokens.set(tempToken, {
     userId: user.id,
@@ -246,7 +244,7 @@ router.post('/2fa', totpLimiter, async (req, res) => {
       const decryptedSecret = decryptSecret(user.totp_secret);
       if (decryptedSecret) {
         const cleanCode = String(totpCode).trim();
-        const result = verifySync({
+        const { verifySync } = await import('otplib'); const result = verifySync({
           token: cleanCode,
           secret: decryptedSecret,
           // Allow up to two 30-second steps of clock drift between server and phone.
