@@ -135,6 +135,37 @@ function cancel2FA() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  const authModal = document.getElementById("authModal");
+  const authOpeners = document.querySelectorAll("[data-open-auth]");
+  const authClosers = document.querySelectorAll("[data-close-auth]");
+  const navToggle = document.getElementById("navToggle");
+  const navLinks = document.getElementById("navLinks");
+
+  const closeAuth = () => {
+    authModal?.classList.remove("open");
+    authModal?.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  };
+  authOpeners.forEach((button) => button.addEventListener("click", () => {
+    authModal?.classList.add("open");
+    authModal?.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    document.getElementById("loginEmail")?.focus();
+  }));
+  authClosers.forEach((button) => button.addEventListener("click", closeAuth));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && authModal?.classList.contains("open")) closeAuth();
+  });
+  navToggle?.addEventListener("click", () => {
+    const expanded = navToggle.getAttribute("aria-expanded") === "true";
+    navToggle.setAttribute("aria-expanded", String(!expanded));
+    navLinks?.classList.toggle("open", !expanded);
+  });
+  navLinks?.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => {
+    navLinks.classList.remove("open");
+    navToggle?.setAttribute("aria-expanded", "false");
+  }));
+
   const loginForm = document.getElementById("loginForm");
   const signupForm = document.getElementById("signupForm");
   const twofaForm = document.getElementById("twofaForm");

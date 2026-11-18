@@ -1,200 +1,92 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login & Sign Up Form UI | CodeByGaurav</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.css">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e8dccf">
+  <meta name="description" content="Thoughtfully sourced coffee, slow mornings, and a better cup at Coffee House.">
+  <title>Coffee — Savor the Perfect Brew</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{espresso:'#3E2723',cream:'#F5EBE1',terracotta:'#D48B54',beige:'#E8DCCF'},fontFamily:{sans:['DM Sans','sans-serif'],serif:['Playfair Display','serif']}}}}</script>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-    <div class="bg-circle bg1"></div>
-    <div class="bg-circle bg2"></div>
-    <div class="bg-circle bg3"></div>
+  <header class="site-header">
+    <nav class="nav-shell" aria-label="Main navigation">
+      <a class="wordmark" href="#home">Coffee<span>.</span></a>
+      <button class="nav-toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="navLinks" aria-label="Open navigation">☰</button>
+      <div class="nav-links" id="navLinks">
+        <a href="#home">Home</a><a href="#menu">Menu</a><a href="#story">Our Story</a><a href="#visit">Locations</a><a href="#contact">Contact</a>
+        <button class="nav-login" type="button" data-open-auth>Member login</button>
+      </div>
+    </nav>
+  </header>
 
-    <div class="auth-wrapper">
-        <div class="auth-card" id="authCard">
+  <main>
+    <section class="hero" id="home" aria-label="Coffee House introduction">
+      <div class="hero-inner">
+        <p class="eyebrow light">A LITTLE MOMENT, JUST FOR YOU</p>
+        <h1>Savor the<br>Perfect Brew<span>!</span></h1>
+        <p class="hero-copy">Thoughtfully sourced beans, carefully roasted, and poured with a little extra love. Find your new favorite in every cup.</p>
+        <div class="hero-actions"><a class="pill pill-light" href="#menu">Explore our menu <span>↗</span></a><a class="pill pill-accent" href="#visit">Find your café <span>↗</span></a></div>
+        <div class="hero-note"><span class="note-line"></span> GOOD COFFEE. SLOW MORNINGS.</div>
+      </div>
+      <div class="hero-stamp"><span>ROASTED<br>WITH CARE</span><b>✳</b></div>
+    </section>
 
-            <!-- Login Form -->
-            <div class="form-panel login-panel" id="loginPanel">
-                <div class="logo">
-                    <i class="fa-solid fa-lock"></i>
-                </div>
-                <h1>Welcome</h1>
-                <p class="subtitle">Login to continue your journey</p>
+    <section class="features section-pad" id="menu">
+      <div class="section-heading"><p class="eyebrow">MADE FOR YOUR MOMENT</p><h2>Find your <em>perfect cup</em></h2></div>
+      <div class="feature-grid">
+        <article class="feature-card"><span class="feature-icon">☕</span><h3>Espresso</h3><p>Bold, balanced, and beautifully simple. The little cup that starts it all.</p></article>
+        <article class="feature-card"><span class="feature-icon">◉</span><h3>Silky Latte</h3><p>Velvety steamed milk meets our signature espresso. Comfort in every sip.</p></article>
+        <article class="feature-card"><span class="feature-icon">♡</span><h3>Honey Oat</h3><p>Sweet local honey and creamy oat milk make a lovely everyday ritual.</p></article>
+        <article class="feature-card"><span class="feature-icon">❄</span><h3>Cold Brew</h3><p>Slow-steeped for 18 hours, smooth and refreshing from the first sip.</p></article>
+      </div>
+    </section>
 
-                <div class="auth-alert" id="loginAlert"></div>
+    <section class="story-split" id="story">
+      <div class="story-dark"><div class="story-copy"><p class="eyebrow light">GOOD THINGS TAKE CARE</p><h2>Why choose<br><em>our coffee?</em></h2><p>We work with small farms, roast in thoughtful batches, and make every cup like it matters. Because it does.</p><a class="pill pill-outline" href="#contact">Our story <span>↗</span></a></div><img class="story-photo" src="https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=900&q=85" alt="Latte in a ceramic cup on a café table" loading="lazy"></div>
+      <div class="offer-panel"><span class="offer-kicker">A LITTLE SOMETHING EXTRA</span><h2>Make mornings<br><em>more delicious.</em></h2><p>Join us before 10 and enjoy a pastry on us with any handcrafted drink. A small thank-you for making us part of your morning.</p><div class="offer-swoosh" aria-hidden="true">〰</div><a class="pill pill-dark" href="#visit">See café details <span>↗</span></a><span class="offer-mark">10<span>AM</span></span></div>
+    </section>
 
-                <form id="loginForm">
-                    <!-- Email -->
-                    <div class="input-group">
-                        <div class="electric-glow"></div>
-                        <div class="electric-border"></div>
-                        <input type="email" id="loginEmail" placeholder=" " autocomplete="email" required>
-                        <label for="loginEmail">
-                            Email Address
-                        </label>
-                    </div>
+    <section class="morning section-pad" id="visit">
+      <div class="morning-intro"><p class="eyebrow"><span>✳</span> YOUR NEIGHBORHOOD COFFEE</p><h2>Morning<br><em>made lovely.</em></h2><p>Come as you are. Stay for another cup. There’s always a warm welcome and a freshly pulled espresso waiting.</p><div class="morning-actions"><a class="pill pill-outline-dark" href="#contact">Our locations <span>↗</span></a><a class="pill pill-dark" href="#menu">See the menu <span>↗</span></a></div></div>
+      <div class="gallery-wrap"><div class="gallery-title"><p class="eyebrow">GOOD COFFEE, RIGHT AROUND THE CORNER</p><h2>Visit us <em>today.</em></h2></div><div class="gallery-grid">
+        <figure><img src="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=500&q=80" alt="Fresh cappuccino" loading="lazy"><figcaption><b>The everyday cappuccino</b><span>Rich espresso · silky foam</span></figcaption></figure>
+        <figure><img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=500&q=80" alt="Freshly poured latte" loading="lazy"><figcaption><b>Our house latte</b><span>Slow mornings · good company</span></figcaption></figure>
+        <figure><img src="https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=500&q=80" alt="Iced coffee" loading="lazy"><figcaption><b>Chilled and lovely</b><span>Cold brew · a little sunshine</span></figcaption></figure>
+        <figure><img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=500&q=80" alt="Coffee and pastry" loading="lazy"><figcaption><b>A café table for two</b><span>Something sweet · always fresh</span></figcaption></figure>
+      </div></div><span class="gallery-spark" aria-hidden="true">✧</span>
+    </section>
 
-                    <!-- Password -->
-                    <div class="input-group">
-                        <div class="electric-glow"></div>
-                        <div class="electric-border"></div>
-                        <input type="password" id="loginPassword" placeholder=" " autocomplete="current-password"
-                            required>
-                        <label for="loginPassword">
-                            Password
-                        </label>
-                        <button type="button" class="password-toggle" data-password-target="loginPassword" aria-label="Show password">
-                            <i id="faIcon" class="fa-solid fa-eye"></i>
-                        </button>
-                    </div>
+    <section class="cta-banner"><div class="cta-content"><p class="eyebrow light">YOUR TABLE IS WAITING</p><h2>Make room for<br><em>a good moment.</em></h2><p>Bring a friend, take a breath, and let us make your next cup.</p><a class="pill pill-accent" href="#visit">Come on in <span>↗</span></a></div></section>
 
-                    <div class="options">
-                        <label class="checkbox">
-                            <input type="checkbox" id="rememberMe">
-                            Remember me
-                        </label>
-                        <a href="#" id="forgotPasswordLink">
-                            Forgot Password?
-                        </a>
-                    </div>
-                    <button type="submit" class="main-btn" id="loginSubmitBtn">
-                        Login
-                    </button>
-                </form>
+    <section class="reviews section-pad"><div class="reviews-heading"><p class="eyebrow">KIND WORDS, GOOD PEOPLE</p><h2>Our favorite <em>part is you.</em></h2></div><div class="review-grid">
+      <article class="review"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80" alt="Customer portrait" loading="lazy"><div><div class="stars">★★★★★</div><h3>Olivia R.</h3><p>“The kind of place that makes an ordinary Tuesday feel like a treat. And the oat latte is perfect.”</p></div></article>
+      <article class="review"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80" alt="Customer portrait" loading="lazy"><div><div class="stars">★★★★★</div><h3>Matthew G.</h3><p>“Lovely people, thoughtful coffee, and the best little corner table in town. I’m here every week.”</p></div></article>
+      <article class="review"><img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=120&h=120&q=80" alt="Customer portrait" loading="lazy"><div><div class="stars">★★★★★</div><h3>Sofia C.</h3><p>“You can taste the care in every cup. The cold brew has officially become my summer ritual.”</p></div></article>
+    </div></section>
+  </main>
 
-                <div class="switch-area">
-                    <span>
-                        Don't have an account?
-                    </span>
-                    <button type="button" class="switch-circle" id="flipToSignupBtn" aria-label="Create an account">
-                        <i class="fa-solid fa-plus"></i>
-                    </button>
-                </div>
-            </div>
+  <footer class="site-footer" id="contact"><div class="footer-brand"><a class="wordmark" href="#home">Coffee<span>.</span></a><p>Good coffee, made with care.<br>Come as you are.</p><small>© 2026 Coffee House. All good things reserved.</small></div><div class="socials" aria-label="Social links"><a href="#contact" aria-label="Instagram">ig</a><a href="#contact" aria-label="Facebook">f</a><a href="#contact" aria-label="TikTok">♪</a><a href="#contact" aria-label="Pinterest">p</a></div><div class="footer-actions"><a class="pill pill-light" href="mailto:hello@coffee.example">Say hello <span>↗</span></a><a class="pill pill-accent" href="mailto:hello@coffee.example?subject=Coffee%20notes">Get coffee notes <span>↗</span></a></div></footer>
 
-            <!-- Sign Up -->
-            <div class="form-panel signup-panel" id="signupPanel">
-                <div class="logo">
-                    <i class="fa-solid fa-user"></i>
-                </div>
-                <h1>Create Account</h1>
-                <p class="subtitle">
-                    Start your journey with us
-                </p>
-
-                <div class="auth-alert" id="signupAlert"></div>
-
-                <form id="signupForm">
-                    <!-- Name -->
-                    <div class="input-group">
-                        <div class="electric-glow"></div>
-                        <div class="electric-border"></div>
-                        <input type="text" id="signupName" placeholder=" " autocomplete="name" required>
-                        <label for="signupName">
-                            Full Name
-                        </label>
-                    </div>
-
-                    <!-- Email -->
-                    <div class="input-group">
-                        <div class="electric-glow"></div>
-                        <div class="electric-border"></div>
-                        <input type="email" id="signupEmail" placeholder=" " autocomplete="email" required>
-                        <label for="signupEmail">
-                           Email Address
-                        </label>
-                    </div>
-
-                    <!-- Password -->
-                    <div class="input-group">
-                        <div class="electric-glow"></div>
-                        <div class="electric-border"></div>
-                        <input type="password" id="signupPassword" placeholder=" " autocomplete="new-password"
-                            required>
-                        <label for="signupPassword">
-                            Password
-                        </label>
-                        <button type="button" class="password-toggle" data-password-target="signupPassword" aria-label="Show password">
-                            <i class="fa-solid fa-eye"></i>
-                        </button>
-                    </div>
-
-                    <!-- Confirm -->
-                    <div class="input-group">
-                        <div class="electric-glow"></div>
-                        <div class="electric-border"></div>
-                        <input type="password" id="confirmPassword" placeholder=" " autocomplete="new-password"
-                            required>
-                        <label for="confirmPassword">
-                           Confirm Password
-                        </label>
-                        <button type="button" class="password-toggle" data-password-target="confirmPassword" aria-label="Show password">
-                            <i class="fa-solid fa-eye"></i>
-                        </button>
-                    </div>
-
-                    <button type="submit" class="main-btn" id="signupSubmitBtn">CREATE ACCOUNT</button>
-                </form>
-
-                <div class="switch-area">
-                    <span>
-                        Already have an account?
-                    </span>
-                    <button type="button" class="switch-circle" id="flipToLoginBtn" aria-label="Back to login">
-                        <i class="fa-solid fa-arrow-left"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 2FA Verification Panel -->
-            <div class="form-panel twofa-panel" id="twofaPanel">
-                <div class="logo">
-                    <i class="fa-solid fa-shield-halved"></i>
-                </div>
-                <h1 id="twofaTitle">Two-Factor Auth</h1>
-                <p class="subtitle" id="twofaSubtitle">Enter verification code to continue</p>
-
-                <div class="auth-alert" id="twofaAlert"></div>
-
-                <div id="enrollmentSection" style="display: none;">
-                    <div class="qr-container">
-                        <img id="qrCodeImg" alt="2FA QR Code" src="">
-                        <div style="font-size: 11px; color: #7c858e;">Can't scan? Key:</div>
-                        <div class="manual-secret" id="manualSecretText"></div>
-                    </div>
-                    <div class="recovery-box">
-                        <div class="recovery-title"><i class="fa-solid fa-key"></i> Backup Recovery Codes (Save these!)</div>
-                        <div class="recovery-list" id="recoveryCodesList"></div>
-                    </div>
-                </div>
-
-                <form id="twofaForm">
-                    <div class="input-group">
-                        <div class="electric-glow"></div>
-                        <div class="electric-border"></div>
-                        <input type="text" id="totpInput" placeholder=" " maxlength="12" autocomplete="one-time-code" required>
-                        <label for="totpInput">6-Digit TOTP or Recovery Code</label>
-                    </div>
-
-                    <button type="submit" class="main-btn" id="twofaSubmitBtn">
-                        VERIFY & ENTER
-                    </button>
-                </form>
-
-                <div class="switch-area">
-                    <span>Back to login?</span>
-                    <button type="button" class="switch-circle" id="cancel2faBtn" aria-label="Back to login">
-                        <i class="fa-solid fa-arrow-left"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+  <div class="auth-modal" id="authModal" aria-hidden="true">
+    <div class="auth-backdrop" data-close-auth></div><section class="auth-dialog" role="dialog" aria-modal="true" aria-label="Member login"><button class="auth-close" type="button" data-close-auth aria-label="Close">×</button>
+      <div class="auth-wrapper"><div class="auth-card" id="authCard">
+        <div class="form-panel login-panel" id="loginPanel"><div class="logo">☕</div><h1>Welcome back</h1><p class="subtitle">Sign in to your Coffee account</p><div class="auth-alert" id="loginAlert"></div><form id="loginForm">
+          <div class="input-group"><input type="email" id="loginEmail" placeholder=" " autocomplete="email" required><label for="loginEmail">Email address</label></div>
+          <div class="input-group"><input type="password" id="loginPassword" placeholder=" " autocomplete="current-password" required><label for="loginPassword">Password</label><button type="button" class="password-toggle" data-password-target="loginPassword" aria-label="Show password">◉</button></div>
+          <div class="options"><label class="checkbox"><input type="checkbox" id="rememberMe"> Remember me</label><a href="#" id="forgotPasswordLink">Forgot password?</a></div><button type="submit" class="main-btn" id="loginSubmitBtn">Sign in</button></form>
+          <div class="switch-area"><span>Need an account?</span><button type="button" class="switch-circle" id="flipToSignupBtn" aria-label="Create an account">＋</button></div></div>
+        <div class="form-panel signup-panel" id="signupPanel"><div class="logo">✳</div><h1>Create account</h1><p class="subtitle">Start your Coffee journey</p><div class="auth-alert" id="signupAlert"></div><form id="signupForm">
+          <div class="input-group"><input type="text" id="signupName" placeholder=" " autocomplete="name" required><label for="signupName">Full name</label></div><div class="input-group"><input type="email" id="signupEmail" placeholder=" " autocomplete="email" required><label for="signupEmail">Email address</label></div><div class="input-group"><input type="password" id="signupPassword" placeholder=" " autocomplete="new-password" required><label for="signupPassword">Password</label><button type="button" class="password-toggle" data-password-target="signupPassword" aria-label="Show password">◉</button></div><div class="input-group"><input type="password" id="confirmPassword" placeholder=" " autocomplete="new-password" required><label for="confirmPassword">Confirm password</label><button type="button" class="password-toggle" data-password-target="confirmPassword" aria-label="Show password">◉</button></div><button type="submit" class="main-btn" id="signupSubmitBtn">Create account</button></form><div class="switch-area"><span>Already a member?</span><button type="button" class="switch-circle" id="flipToLoginBtn" aria-label="Back to login">←</button></div></div>
+        <div class="form-panel twofa-panel" id="twofaPanel"><div class="logo">✳</div><h1 id="twofaTitle">Two-factor auth</h1><p class="subtitle" id="twofaSubtitle">Enter your verification code</p><div class="auth-alert" id="twofaAlert"></div><div id="enrollmentSection" style="display:none"><div class="qr-container"><img id="qrCodeImg" alt="2FA QR Code" src=""><div>Can't scan? Key:</div><div class="manual-secret" id="manualSecretText"></div></div><div class="recovery-box"><div class="recovery-title">Backup recovery codes (save these!)</div><div class="recovery-list" id="recoveryCodesList"></div></div></div><form id="twofaForm"><div class="input-group"><input type="text" id="totpInput" placeholder=" " maxlength="12" autocomplete="one-time-code" required><label for="totpInput">6-digit or recovery code</label></div><button type="submit" class="main-btn" id="twofaSubmitBtn">Verify & enter</button></form><div class="switch-area"><span>Back to login?</span><button type="button" class="switch-circle" id="cancel2faBtn" aria-label="Back to login">←</button></div></div>
+      </div></div>
+    </section>
+  </div>
+  <script src="script.js?v=coffee-refresh"></script>
 </body>
-<script src="script.js?v=auth-enrollment-fix"></script>
-
 </html>

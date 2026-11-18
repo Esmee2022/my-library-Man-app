@@ -60,10 +60,10 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", 'https://cdn.tailwindcss.com'],
         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdnjs.cloudflare.com'],
         fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com'],
-        imgSrc: ["'self'", 'data:', 'https://covers.openlibrary.org'],
+        imgSrc: ["'self'", 'data:', 'https://covers.openlibrary.org', 'https://images.unsplash.com'],
         connectSrc: ["'self'", ...WEB_ORIGINS]
       }
     },
